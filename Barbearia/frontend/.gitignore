@@ -1,0 +1,33 @@
+# Visual Studio
+.vs/
+bin/
+obj/
+
+# Arquivos de usuário
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Logs
+*.log
+
+# Configurações locais
+appsettings.Development.json
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Frontend
+node_modules/
+dist/
+
+# Variáveis de ambiente
+.env
+.env.*
+.env.local
+.env.*.local
+!.env.example

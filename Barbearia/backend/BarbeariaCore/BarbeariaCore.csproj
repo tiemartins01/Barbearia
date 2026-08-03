@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+	 <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Folder Include="Application\DTOs\" />
+    <Folder Include="Application\Interfaces\" />
+    <Folder Include="Application\Validation\" />
+    <Folder Include="Application\Services\" />
+    <Folder Include="Domain\Entities\" />
+    <Folder Include="Domain\Enum\" />
+    <Folder Include="Domain\ValueObjects\" />
+    <Folder Include="Exceptions\" />
+  </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+		<PackageReference Include="FluentValidation" Version="12.1.1" />
+
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+
+		<PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.21.0" />
+
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
+	</ItemGroup>
+
+</Project>

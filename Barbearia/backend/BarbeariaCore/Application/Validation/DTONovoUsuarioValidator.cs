@@ -1,0 +1,18 @@
+using Barbearia.Core.DTO;
+using FluentValidation;
+
+namespace Barbearia.Core.Application.Validation;
+
+public sealed class DTONovoUsuarioValidator : AbstractValidator<DTONovoUsuario>
+{
+    public DTONovoUsuarioValidator()
+    {
+        RuleFor(x => x.Nome).NotEmpty().MaximumLength(100);
+        RuleFor(x => x.Email).NotEmpty().MaximumLength(254);
+        RuleFor(x => x.Phone).NotEmpty().MaximumLength(20);
+        RuleFor(x => x.CPF).NotEmpty().MaximumLength(14);
+        RuleFor(x => x.Login).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.SenhaR).NotEmpty().MinimumLength(6).MaximumLength(128);
+        RuleFor(x => x.Foto).MaximumLength(500).When(x => !string.IsNullOrWhiteSpace(x.Foto));
+    }
+}
