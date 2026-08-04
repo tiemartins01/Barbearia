@@ -1,8 +1,9 @@
 ﻿using Barbearia.Core.Domain.Entities;
 using Barbearia.Core.Domain.ValueObjects;
 using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Barbearia.Core.Service
@@ -12,12 +13,14 @@ namespace Barbearia.Core.Service
         private readonly IAbaClienteRepository _repository;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AbaClienteService> _logger;
+        private readonly IPasswordHash _passwordHash;
 
-        public AbaClienteService(IAbaClienteRepository repository, IUnitOfWork uow, ILogger<AbaClienteService> logger)
+        public AbaClienteService(IAbaClienteRepository repository, IUnitOfWork uow, ILogger<AbaClienteService> logger, IPasswordHash password)
         {
             _repository = repository;
             _uow = uow;
             _logger = logger;
+            _passwordHash = password;
         }
 
         // APENAS PARA RETORNAR OS BARBEIROS CADASTRADOS E ATIVOS
@@ -88,9 +91,6 @@ namespace Barbearia.Core.Service
         // ALTERANDO OS DADOS PESSOAIS 
         public async Task AlterandoDados(DTOAlterandoDados dados)
         {
-            if (dados == null)
-                throw new DomainException("NO_DATA","Dados inválidos!");
-
             var usuario = await _repository.GetUsuarioAsync(dados.Id);
 
             if(usuario == null)
@@ -103,10 +103,10 @@ namespace Barbearia.Core.Service
 
             if (!string.IsNullOrEmpty(dados.NovaSenha))
             {
-                if (!usuario.Senha.Verify(dados.SenhaAntiga) || string.IsNullOrEmpty(dados.SenhaAntiga))
+                if (!usuario.Senha.Verify(dados.SenhaAntiga,_passwordHash) || string.IsNullOrEmpty(dados.SenhaAntiga))
                     throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválidas!");
 
-                usuario.AlterarSenha(dados.NovaSenha);
+                usuario.AlterarSenha(new Senha(dados.NovaSenha));
             }
             await _uow.SaveChangesAsync();
         }
@@ -114,10 +114,6 @@ namespace Barbearia.Core.Service
         // REALIZAR A AVALIAÇÃO
         public async Task RealizandoAvaliacaoAsync(DTOAvaliacao avaliacao, int id_cliente)
         {
-            if (avaliacao == null)
-                throw new DomainException("NO_DATA", "Dados inválidos!");
-
-
             await InformacoesFora(avaliacao, id_cliente);
 
             var nova_avaliacao = new Avaliacoes

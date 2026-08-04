@@ -1,4 +1,4 @@
-﻿using Barbearia.Core.Excepetion;
+﻿using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
 using Microsoft.Extensions.Logging;
 using Barbearia.Core.Security;
@@ -23,9 +23,6 @@ namespace Barbearia.Core.Service
 
         public async Task EnviarEmailAsync(string email)
         {
-            if (string.IsNullOrWhiteSpace(email))
-                throw new DomainException("EMPTY_FIELD","E-mail obrigatório.");
-
             email = email.Trim().ToLowerInvariant();
 
             var usuario = await _repository.BuscarUsuarioPorEmailAsync (email);
@@ -34,7 +31,6 @@ namespace Barbearia.Core.Service
                 throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválida!");
 
             var codigo =  CodeGenerator.GerarCod();
-
             
             usuario.GerarCodigo(codigo);
 

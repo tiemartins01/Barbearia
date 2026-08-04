@@ -1,4 +1,4 @@
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Infrastructure.Data;
 using Barbearia.Core.Interface;
 using Microsoft.EntityFrameworkCore;

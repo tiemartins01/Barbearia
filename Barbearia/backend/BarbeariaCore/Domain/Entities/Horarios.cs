@@ -1,7 +1,7 @@
 using Barbearia.Core.Domain.Common;
 using Barbearia.Core.Domain.Events;
 using Barbearia.Core.Enum;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 
 namespace Barbearia.Core.Domain.Entities;
 

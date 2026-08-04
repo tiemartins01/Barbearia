@@ -5,10 +5,13 @@ namespace Barbearia.Middleware;
 public sealed class RequestLoggingMiddleware
 {
     private const string CorrelationHeader = "X-Correlation-ID";
+
     private readonly RequestDelegate _next;
     private readonly ILogger<RequestLoggingMiddleware> _logger;
 
-    public RequestLoggingMiddleware(RequestDelegate next, ILogger<RequestLoggingMiddleware> logger)
+    public RequestLoggingMiddleware(
+        RequestDelegate next,
+        ILogger<RequestLoggingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -18,6 +21,7 @@ public sealed class RequestLoggingMiddleware
     {
         var correlationId = GetCorrelationId(context);
         var stopwatch = Stopwatch.StartNew();
+
         context.TraceIdentifier = correlationId;
 
         context.Response.OnStarting(() =>
@@ -39,6 +43,7 @@ public sealed class RequestLoggingMiddleware
             finally
             {
                 stopwatch.Stop();
+
                 _logger.LogInformation(
                     "HTTP {Method} {Path} respondeu {StatusCode} em {ElapsedMs} ms",
                     context.Request.Method,
@@ -51,7 +56,11 @@ public sealed class RequestLoggingMiddleware
 
     private static string GetCorrelationId(HttpContext context)
     {
-        var received = context.Request.Headers[CorrelationHeader].FirstOrDefault();
-        return string.IsNullOrWhiteSpace(received) ? Guid.NewGuid().ToString("N") : received.Trim();
+        var receivedCorrelationId =
+            context.Request.Headers[CorrelationHeader].FirstOrDefault();
+
+        return string.IsNullOrWhiteSpace(receivedCorrelationId)
+            ? Guid.NewGuid().ToString("N")
+            : receivedCorrelationId.Trim();
     }
 }

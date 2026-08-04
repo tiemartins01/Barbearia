@@ -1,5 +1,5 @@
 ﻿using System.Net.Mail;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 
 namespace Barbearia.Core.Domain.ValueObjects
 {

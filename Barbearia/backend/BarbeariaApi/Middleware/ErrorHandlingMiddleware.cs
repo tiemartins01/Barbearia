@@ -1,5 +1,4 @@
-using Barbearia.Core.Excepetion;
-using Microsoft.AspNetCore.Mvc;
+using Barbearia.Core.Exceptions;
 using System.Text.Json;
 
 namespace Barbearia.Middleware;
@@ -9,7 +8,9 @@ public sealed class ErrorHandlingMiddleware
     private readonly RequestDelegate _next;
     private readonly ILogger<ErrorHandlingMiddleware> _logger;
 
-    public ErrorHandlingMiddleware(RequestDelegate next, ILogger<ErrorHandlingMiddleware> logger)
+    public ErrorHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ErrorHandlingMiddleware> logger)
     {
         _next = next;
         _logger = logger;
@@ -21,45 +22,53 @@ public sealed class ErrorHandlingMiddleware
         {
             await _next(context);
         }
-        catch (DomainException ex)
+        catch (ValidationException ex)
         {
-            var statusCode = MapStatusCode(ex.Code);
-
-            _logger.LogWarning(
-                ex,
-                "Erro de domínio {ErrorCode} em {Method} {Path}. TraceId: {TraceId}",
-                ex.Code,
-                context.Request.Method,
-                context.Request.Path,
-                context.TraceIdentifier);
-
-            await WriteProblemDetailsAsync(context, statusCode, ex.Code, ex.Message);
-        }
-        catch (BadHttpRequestException ex)
-        {
-            _logger.LogWarning(
-                ex,
-                "Requisição inválida em {Method} {Path}. TraceId: {TraceId}",
-                context.Request.Method,
-                context.Request.Path,
-                context.TraceIdentifier);
-
-            await WriteProblemDetailsAsync(
+            await HandleAppExceptionAsync(
                 context,
-                StatusCodes.Status400BadRequest,
-                "INVALID_REQUEST",
-                "A requisição enviada é inválida.");
+                ex,
+                StatusCodes.Status400BadRequest);
+        }
+        catch (AuthenticationException ex)
+        {
+            await HandleAppExceptionAsync(
+                context,
+                ex,
+                StatusCodes.Status401Unauthorized);
+        }
+        catch (ForbiddenException ex)
+        {
+            await HandleAppExceptionAsync(
+                context,
+                ex,
+                StatusCodes.Status403Forbidden);
+        }
+        catch (ConflictException ex)
+        {
+            await HandleAppExceptionAsync(
+                context,
+                ex,
+                StatusCodes.Status409Conflict);
+        }
+        catch (AppException ex)
+        {
+            // Segurança para alguma exceção de aplicação
+            // que ainda não tenha um mapeamento específico.
+            await HandleAppExceptionAsync(
+                context,
+                ex,
+                StatusCodes.Status400BadRequest);
         }
         catch (Exception ex)
         {
             _logger.LogError(
                 ex,
-                "Erro não tratado em {Method} {Path}. TraceId: {TraceId}",
+                "Erro não tratado em {Metodo} {Path}. TraceId: {TraceId}",
                 context.Request.Method,
                 context.Request.Path,
                 context.TraceIdentifier);
 
-            await WriteProblemDetailsAsync(
+            await WriteResponseAsync(
                 context,
                 StatusCodes.Status500InternalServerError,
                 "INTERNAL_ERROR",
@@ -67,71 +76,49 @@ public sealed class ErrorHandlingMiddleware
         }
     }
 
-    private static int MapStatusCode(string code)
+    private async Task HandleAppExceptionAsync(
+        HttpContext context,
+        AppException exception,
+        int statusCode)
     {
-        if (code.Contains("ALREADY", StringComparison.OrdinalIgnoreCase) ||
-            code.Contains("CONFLICT", StringComparison.OrdinalIgnoreCase) ||
-            code is "DIFFERENT_STATUS" or "IDEMPOTENCY_IN_PROGRESS")
-        {
-            return StatusCodes.Status409Conflict;
-        }
+        _logger.LogWarning(
+            exception,
+            "Erro de aplicação {Codigo} em {Metodo} {Path}. TraceId: {TraceId}",
+            exception.Code,
+            context.Request.Method,
+            context.Request.Path,
+            context.TraceIdentifier);
 
-        if (code.StartsWith("AUTH_", StringComparison.OrdinalIgnoreCase) ||
-            code is "INVALID_REFRESH")
-        {
-            return StatusCodes.Status401Unauthorized;
-        }
-
-        if (code is "ACTION_DENIED" or "RESOURCE_ACCESS_DENIED")
-        {
-            return StatusCodes.Status403Forbidden;
-        }
-
-        if (code is "SESSION_NOT_FOUND" ||
-            code.StartsWith("NO_", StringComparison.OrdinalIgnoreCase) ||
-            code.StartsWith("WITHOUT_", StringComparison.OrdinalIgnoreCase))
-        {
-            return StatusCodes.Status404NotFound;
-        }
-
-        return StatusCodes.Status400BadRequest;
+        await WriteResponseAsync(
+            context,
+            statusCode,
+            exception.Code,
+            exception.Message);
     }
 
-    private static async Task WriteProblemDetailsAsync(
+    private static async Task WriteResponseAsync(
         HttpContext context,
         int statusCode,
-        string errorCode,
-        string detail)
+        string code,
+        string message)
     {
         if (context.Response.HasStarted)
             return;
 
         context.Response.Clear();
         context.Response.StatusCode = statusCode;
-        context.Response.ContentType = "application/problem+json; charset=utf-8";
+        context.Response.ContentType = "application/json; charset=utf-8";
 
-        var problem = new ProblemDetails
+        var response = new
         {
-            Type = $"https://api.barbearia/errors/{errorCode.ToLowerInvariant().Replace('_', '-')}",
-            Title = GetTitle(statusCode),
-            Status = statusCode,
-            Detail = detail,
-            Instance = context.Request.Path
+            sucesso = false,
+            codigo = code,
+            mensagem = message,
+            traceId = context.TraceIdentifier
         };
 
-        problem.Extensions["errorCode"] = errorCode;
-        problem.Extensions["traceId"] = context.TraceIdentifier;
+        var json = JsonSerializer.Serialize(response);
 
-        await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+        await context.Response.WriteAsync(json);
     }
-
-    private static string GetTitle(int statusCode) => statusCode switch
-    {
-        StatusCodes.Status400BadRequest => "Requisição inválida",
-        StatusCodes.Status401Unauthorized => "Não autenticado",
-        StatusCodes.Status403Forbidden => "Acesso negado",
-        StatusCodes.Status404NotFound => "Recurso não encontrado",
-        StatusCodes.Status409Conflict => "Conflito de negócio",
-        _ => "Erro interno"
-    };
 }

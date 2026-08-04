@@ -1,29 +1,28 @@
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-using Microsoft.AspNetCore.Authorization;
-using BarbeariaApi.Security;
 using Barbearia.BackgroundServices;
-using Barbearia.HealthChecks;
-using Barbearia.Observability;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using BarbeariaInfrastructure;
 using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Domain.Entities;
 using Barbearia.Core.Infrastructure.Data;
+using Barbearia.Core.Infrastructure.Services;
 using Barbearia.Core.Interface;
 using Barbearia.Core.Repository;
-using Barbearia.Core.Infrastructure.Services;
 using Barbearia.Core.Service;
+using Barbearia.HealthChecks;
+using Barbearia.Observability;
+using BarbeariaApi.Security;
+using BarbeariaCore.Application.Interfaces;
+using BarbeariaInfrastructure;
+using BarbeariaInfrastructure.Security;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
-using System.Net;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 using System.Text;
-using static System.Net.Mime.MediaTypeNames;
+
 namespace BarbeariaApi.Extensions
 {
     //Esse método cobre:
@@ -33,6 +32,24 @@ namespace BarbeariaApi.Extensions
     //connection string
     public static class ServiceCollectionExtensions
     {
+        // AddBarbeariaDatabase:
+
+        // Busca configuration.GetConnectionString("PostgreSql")
+        //depois registra services.AddDbContext<AppDbContext>(...)
+
+        // Caminho da conexão: 
+        //Program.cs
+        //    ↓
+        //AddBarbeariaDatabase
+        //    ↓
+        //ConnectionStrings:PostgreSql
+        //   ↓
+        // AppDbContext
+        //   ↓
+        //Npgsql
+        //    ↓
+        //PostgreSQL
+
         // transforma o método em um método de extensão. -> this IServiceCollection
         public static IServiceCollection AddBarbeariaDatabase (this IServiceCollection services, IConfiguration configuration)
         {
@@ -46,8 +63,8 @@ namespace BarbeariaApi.Extensions
         npgsqlOptions =>
         {
             npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 5,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
+                maxRetryCount: 5, // Quantidade máxima de chamadas pós falha
+                maxRetryDelay: TimeSpan.FromSeconds(10), // até 10 segundis entre chamadas
                 errorCodesToAdd: null);
         });
             });
@@ -66,14 +83,16 @@ namespace BarbeariaApi.Extensions
             services.AddScoped<ITrocaSenhaRepository, TrocaSenhaRepository>();
             services.AddScoped<IRefreshRepository, RefreshRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWorksRepository>();
+            services.AddScoped<IPasswordHash, PasswordHasher>();
             services.AddScoped<IIdempotencyService, DatabaseIdempotencyService>();
-            services.AddHostedService<OutboxProcessorService>();
+            services.AddHostedService<OutboxProcessorService>(); //roda em segundo plano
+            services.AddScoped<ITokenService, TokenService>();
 
             return services;
         }
-        // Application regras dos casos de uso orquestra o fluxo usa interfaces
 
-        //Infrastructure banco persistência serviços externos implementação concreta
+        // Application regras dos casos de uso orquestra o fluxo usa interfaces
+        // Registro de serviços do Core
         public static IServiceCollection AddBarbeariaApplication(
     this IServiceCollection services)
         {
@@ -84,7 +103,6 @@ namespace BarbeariaApi.Extensions
             services.AddScoped<INovoClienteService, NovoClienteService>();
             services.AddScoped<IProximoAtendimentoService, ProximoAtendimentoService>();
             services.AddScoped<ITrocaSenhaService, TrocaSenhaService>();
-            services.AddScoped<ITokenService, TokenService>();
             services.AddScoped<IRefreshTokenService, RefreshTokenService>();
 
             return services;
@@ -207,13 +225,8 @@ namespace BarbeariaApi.Extensions
 
         public static IServiceCollection AddBarbeariaApiServices(this IServiceCollection services, IConfiguration configuration)
         {
-            //services.AddControllers(options =>
-            //{
-            //    options.Filters.Add(
-            //        new AutoValidateAntiforgeryTokenAttribute()); // AutoValidateAntiforgeryTokenAttribute depende de serviços da infraestrutura de Views/MVC
-            //});
             services.AddControllers();
-            services.AddProblemDetails();
+            services.AddProblemDetails(); // registra suporte ao formato padronizado http.
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen(options =>
             {
@@ -224,8 +237,10 @@ namespace BarbeariaApi.Extensions
                     Description = "API REST para autenticação, clientes, serviços e agendamentos."
                 });
             });
-            services.AddHttpContextAccessor();
+            services.AddHttpContextAccessor(); // serve para permitir que classes que não são Controllers tenham acesso ao HttpContext da requisição atual
+            // Exemplo: Current User
 
+            //configura proteção contra CSRF
             services.AddAntiforgery(options =>
             {
                 options.HeaderName = "X-CSRF-TOKEN";
@@ -239,8 +254,9 @@ namespace BarbeariaApi.Extensions
 
 
             services.AddScoped<ICurrentUser, CurrentUser>();
-            services.AddScoped<IAuditContext, CurrentAuditContext>();
+            services.AddScoped<IAuditContext, CurrentAuditContext>(); // Fornece ao AppDbContext : usuário atual; IP; User-Agent; rota; método HTTP; CorrelationId. Verifica quem alterou
 
+            // Criação de um token forte
             var jwtkey = configuration["Jwt:Key"];
 
             if(string.IsNullOrWhiteSpace(jwtkey) || Encoding.UTF8.GetByteCount(jwtkey) < 32)
@@ -255,11 +271,28 @@ namespace BarbeariaApi.Extensions
             var audience = configuration["Jwt:Audience"]
                 ?? throw new InvalidOperationException(
                     "Jwt:Audience não configurado.");
+            // Define JWT Bearer como esquema padrão.
+
+            // Requisição
+            //      ↓
+            //UseAuthentication()
+            //      ↓
+            //JWT tenta validar o token
+            //      ↓
+            //Token inválido ou inexistente
+            //      ↓
+            //UseAuthorization()
+            //      ↓
+            //Endpoint exige[Authorize]
+            //      ↓
+            //DefaultChallengeScheme(JWT Bearer)
+            //      ↓
+            //Retorna 401 Unauthorized
 
             services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme; // Usado para tentar identificar o usuário.
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Usado quando alguém tenta acessar um endpoint protegido sem autenticação válida.
             }).AddJwtBearer(options =>
             {
                 options.TokenValidationParameters = new TokenValidationParameters

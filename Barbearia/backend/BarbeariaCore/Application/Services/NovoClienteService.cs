@@ -1,8 +1,9 @@
 ﻿using Barbearia.Core.Domain.Entities;
 using Barbearia.Core.Domain.ValueObjects;
 using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Barbearia.Core.Service
@@ -13,22 +14,18 @@ namespace Barbearia.Core.Service
         private readonly INovoClienteRepository _repository;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<NovoClienteService> _logger;
+        private readonly IPasswordHash _hash;
 
-        public NovoClienteService(INovoClienteRepository repository, IUnitOfWork uow, ILogger<NovoClienteService> logger)
+        public NovoClienteService(INovoClienteRepository repository, IUnitOfWork uow, ILogger<NovoClienteService> logger, IPasswordHash hash)
         {
             _repository = repository;
             _uow = uow;
             _logger = logger;
+            _hash = hash;
         }
 
         public async Task<DTOResposta> CadastrarAsync(string nome, string email, string telefone, string cpf, string login, string senha, string foto)
         {
-            if (string.IsNullOrWhiteSpace(nome))
-                throw new DomainException("USER_NAME_REQUIRED", "Nome é obrigatório.");
-
-            if (string.IsNullOrWhiteSpace(login))
-                throw new DomainException("USER_LOGIN_REQUIRED", "Login é obrigatório.");
-
             nome = nome.Trim();
             login = login.Trim().ToLowerInvariant();
 
@@ -36,7 +33,7 @@ namespace Barbearia.Core.Service
             var emailNormalizado = new Email(email);
             var telefoneNormalizado = new Phone(telefone);
             var cpfNormalizado = new Cpf(cpf);
-            var senhaProtegida = Senha.Criar(senha);
+            var senhaProtegida = Senha.Criar(senha, _hash);
 
             await ValidarDuplicidadeAsync(emailNormalizado.EmailPessoa, cpfNormalizado.Numero, telefoneNormalizado.Telefone, login);
 

@@ -1,4 +1,5 @@
-﻿using Barbearia.Core.Excepetion;
+﻿using Barbearia.Core.Exceptions;
+using BarbeariaCore.Application.Interfaces;
 
 namespace Barbearia.Core.Domain.ValueObjects
 {
@@ -12,29 +13,32 @@ namespace Barbearia.Core.Domain.ValueObjects
             SenhaHash = hash;
         }
 
-        public static Senha Criar(string senha)
+        public static Senha Criar(string senha, IPasswordHash _hash)
         {
             ValidarSenhaEmTextoPlano(senha);
 
-            var hash = Security.PasswordHasher.Hash(senha);
+            ArgumentNullException.ThrowIfNull(_hash);
+
+
+            var hash = _hash.Hash(senha);
 
             return new Senha(hash);
         }
 
-        public bool Verify(string senha) 
+        public bool Verify(string senha, IPasswordHash _hash) 
         {
             if (string.IsNullOrWhiteSpace(senha))
                 return false;
 
-            return Security.PasswordHasher.Verify(senha, SenhaHash);
+            return _hash.Verify(senha, SenhaHash);
         }
 
         private static void ValidarSenhaEmTextoPlano(string senha)
         {
             if (string.IsNullOrWhiteSpace(senha))
-                throw new DomainException("USER_INVALID_PASSWORD", "Senha em branco.");
+                throw new DomainException("USER_INVALID_passwordHash", "Senha em branco.");
             if (senha.Length < 6)
-                throw new DomainException("USER_INVALID_PASSWORD", "A senha deve ter no mínimo 6 caracteres.");
+                throw new DomainException("USER_INVALID_passwordHash", "A senha deve ter no mínimo 6 caracteres.");
         }
 
         public override string ToString() => "********";

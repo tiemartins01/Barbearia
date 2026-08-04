@@ -1,6 +1,6 @@
 ﻿using BarbeariaInfrastructure;
 using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;

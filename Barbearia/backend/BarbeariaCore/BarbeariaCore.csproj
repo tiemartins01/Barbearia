@@ -8,13 +8,11 @@
 
   <ItemGroup>
     <Folder Include="Application\DTOs\" />
-    <Folder Include="Application\Interfaces\" />
     <Folder Include="Application\Validation\" />
     <Folder Include="Application\Services\" />
     <Folder Include="Domain\Entities\" />
     <Folder Include="Domain\Enum\" />
     <Folder Include="Domain\ValueObjects\" />
-    <Folder Include="Exceptions\" />
   </ItemGroup>
 
 	<ItemGroup>

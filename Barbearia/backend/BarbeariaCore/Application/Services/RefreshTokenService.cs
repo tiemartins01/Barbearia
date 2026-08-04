@@ -1,5 +1,5 @@
 using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
 
 namespace Barbearia.Core.Service

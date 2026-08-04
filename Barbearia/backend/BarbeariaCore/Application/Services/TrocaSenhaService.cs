@@ -1,7 +1,9 @@
-﻿using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+﻿using Barbearia.Core.Domain.Entities;
+using Barbearia.Core.Domain.ValueObjects;
+using Barbearia.Core.DTO;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
-using Barbearia.Core.Domain.Entities;
+using BarbeariaCore.Application.Interfaces;
 
 namespace Barbearia.Core.Service
 {
@@ -10,15 +12,19 @@ namespace Barbearia.Core.Service
 
         private readonly ITrocaSenhaRepository _repository;
         private readonly IUnitOfWork _uow;
-        public TrocaSenhaService(ITrocaSenhaRepository repository, IUnitOfWork uow)
+        private readonly IPasswordHash _passwordHash;
+        public TrocaSenhaService(ITrocaSenhaRepository repository, IUnitOfWork uow, IPasswordHash passwordhash)
         {
             _repository = repository;
             _uow = uow;
+            _passwordHash = passwordhash;
+
         }
 
         public async Task<DTOResposta> RealizarTrocaSenha(string codigo, string email, string senha, string senharepetida)
         {
             var usuario = await _repository.PegaInformacaoUsuario(email);
+            var senhaProtegida = Senha.Criar(senha, _passwordHash);
 
             if (usuario is null || !usuario.Ativado)
                 throw new DomainException("PASSWORD_RESET_INVALID_DATA", "Dados inválidos!");
@@ -34,10 +40,10 @@ namespace Barbearia.Core.Service
 
             if (!string.Equals(senha,senharepetida,StringComparison.Ordinal))
             {
-                throw new DomainException("PASSWORD_RESET_PASSWORD_MISMATCH", "Dados inválidos!");
+                throw new DomainException("PASSWORD_RESET_passwordHash_MISMATCH", "Dados inválidos!");
             }
 
-            usuario.AlterarSenha(senha);
+            usuario.AlterarSenha(senhaProtegida);
 
             await _repository.AtualizaUsuario(usuario);
 

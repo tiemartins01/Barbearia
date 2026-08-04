@@ -2,7 +2,7 @@ using Barbearia.Core.Domain.Common;
 using Barbearia.Core.Domain.Events;
 using Barbearia.Core.Domain.ValueObjects;
 using Barbearia.Core.Enum;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 
 namespace Barbearia.Core.Domain.Entities;
 
@@ -29,6 +29,7 @@ public sealed class Usuario : AggregateRoot
     public int TentativasCodigo { get; private set; }
     public bool CodigoAtivo { get; private set; }
 
+
     private Usuario() { }
 
     public Usuario(
@@ -47,7 +48,7 @@ public sealed class Usuario : AggregateRoot
         Email = email ?? throw new DomainException("USER_INVALID_EMAIL", "E-mail é obrigatório.");
         Phone = phone ?? throw new DomainException("USER_INVALID_PHONE", "Telefone é obrigatório.");
         CPF = cpf ?? throw new DomainException("USER_INVALID_CPF", "CPF é obrigatório.");
-        Senha = senha ?? throw new DomainException("USER_INVALID_PASSWORD", "Senha é obrigatória.");
+        Senha = senha ?? throw new DomainException("USER_INVALID_passwordHash", "Senha é obrigatória.");
         Role = role;
         Ativado = ativado;
         Foto = string.IsNullOrWhiteSpace(foto) ? null : foto.Trim();
@@ -65,7 +66,7 @@ public sealed class Usuario : AggregateRoot
 
     public void AlterarSenhaPerfil(Senha senha)
     {
-        Senha = senha ?? throw new DomainException("USER_INVALID_PASSWORD", "Senha é obrigatória.");
+        DefinirNovaSenha(senha);
         AddDomainEvent(new SenhaAlteradaDomainEvent(Id));
     }
 
@@ -152,17 +153,18 @@ public sealed class Usuario : AggregateRoot
             CodigoAtivo = false;
     }
 
-    public void AlterarSenha(string novaSenha)
+    public void AlterarSenha(Senha novaSenha)
     {
-        if (string.IsNullOrWhiteSpace(novaSenha))
-            throw new DomainException("USER_INVALID_PASSWORD", "Senha inválida.");
-
-        if (novaSenha.Length < 6)
-            throw new DomainException("USER_INVALID_PASSWORD", "Senha deve ter no mínimo 6 caracteres.");
-
-        Senha = Senha.Criar(novaSenha);
+        DefinirNovaSenha(novaSenha);
         LimparCodigo();
         AddDomainEvent(new SenhaAlteradaDomainEvent(Id));
+    }
+
+    public void DefinirNovaSenha(Senha senha)
+    {
+        Senha = senha ?? throw new DomainException(
+            "USER_INVALID_PASSWORD",
+            "Senha é obrigatória.");
     }
 
     public void LimparCodigo()

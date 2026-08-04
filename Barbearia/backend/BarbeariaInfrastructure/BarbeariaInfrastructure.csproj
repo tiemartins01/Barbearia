@@ -1,18 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <Compile Remove="Security\**" />
-    <EmbeddedResource Remove="Security\**" />
-    <None Remove="Security\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\BarbeariaCore\BarbeariaCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Configuration\" />
     <Folder Include="Data\Migrations\" />
+    <Folder Include="Security\" />
     <Folder Include="Repository\" />
   </ItemGroup>
 

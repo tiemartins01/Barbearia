@@ -1,7 +1,8 @@
 ﻿using Barbearia.Core.Domain.Entities;
 using Barbearia.Core.DTO;
-using Barbearia.Core.Excepetion;
+using Barbearia.Core.Exceptions;
 using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace Barbearia.Core.Service
@@ -14,24 +15,21 @@ namespace Barbearia.Core.Service
         private readonly IRefreshRepository _refresh;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<LoginService> _logger;
+        private readonly IPasswordHash _passwordHash;
 
-        public LoginService (ILoginRepository repository, ITokenService token, IRefreshRepository refresh, IUnitOfWork uow, ILogger<LoginService> logger)
+        public LoginService (ILoginRepository repository, ITokenService token, IRefreshRepository refresh, IUnitOfWork uow, ILogger<LoginService> logger, IPasswordHash password)
         {
             _repository = repository;
             _token = token;
             _refresh = refresh;
             _uow = uow;
             _logger = logger;
+            _passwordHash = password;
         }
 
         public async Task<DTOAuthResponse> RealizarLoginAsync(string login, string senha)
         {
-            if (string.IsNullOrWhiteSpace(login))
-                throw new DomainException("EMPTY_FIELDS", "Login vazio");
-
-            if(string.IsNullOrWhiteSpace(senha))
-                throw new DomainException("EMPTY_FIELDS", "Senha vazia");
-
+            // DTO VALIDATOR LOGIN JÁ VERIFICA E NÃO DEIXA CHEGAR VAZIO
             login = login.Trim().ToLowerInvariant();
 
             var usuario = await _repository.ObterPorLoginAsync(login);
@@ -39,15 +37,15 @@ namespace Barbearia.Core.Service
             if (usuario == null)
             {
                 _logger.LogWarning("Tentativa de acessar com um usuário inexistente: {login}", login);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
             }
                
             ValidarUsuario(usuario, login);
 
-            if (!usuario.Senha.Verify(senha))
+            if (!usuario.Senha.Verify(senha, _passwordHash))
             {
                 await RegistrarFalha(usuario, login);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
             }
 
             usuario.ResetarTentativasLogin();
@@ -66,13 +64,13 @@ namespace Barbearia.Core.Service
             if (!usuario.Ativado)
             {
                 _logger.LogWarning("Tentativa de logar com um usuário inátivo {login}",login);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
             }
 
             if (!usuario.PodeLogar())
             {
                 _logger.LogWarning("Tentativa de logar com um usuário bloqueado {login}", login);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
             }
         }
 
