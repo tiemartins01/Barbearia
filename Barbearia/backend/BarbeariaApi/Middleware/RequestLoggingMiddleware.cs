@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace Barbearia.Middleware;
 
@@ -59,8 +60,20 @@ public sealed class RequestLoggingMiddleware
         var receivedCorrelationId =
             context.Request.Headers[CorrelationHeader].FirstOrDefault();
 
-        return string.IsNullOrWhiteSpace(receivedCorrelationId)
-            ? Guid.NewGuid().ToString("N")
-            : receivedCorrelationId.Trim();
+        if (string.IsNullOrWhiteSpace(receivedCorrelationId))
+            return Guid.NewGuid().ToString("N");
+
+        var correlationId = receivedCorrelationId.Trim();
+
+        if (!CorrelationRegex.IsMatch(correlationId))
+            return Guid.NewGuid().ToString("N");
+
+        return correlationId;
     }
+    // Formato permitido para X-correlation-ID
+    // Máximo de 64 caracteres
+    private static readonly Regex CorrelationRegex =
+        new("^[a-zA-Z0-9-_]{1,64}$");
+
+   
 }

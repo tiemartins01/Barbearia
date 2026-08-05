@@ -1,7 +1,31 @@
 using Barbearia.Core.Exceptions;
+using Microsoft.AspNetCore.Mvc;
+using System.Runtime.Intrinsics.X86;
+using System.Security.Cryptography.Xml;
 using System.Text.Json;
 
 namespace Barbearia.Middleware;
+// Middleware responsável por capturar exceções que aconteceram durante a requisição.
+// Evita o try e catch em todos os controllers.
+// Registra o detalhe técnico da exceção
+
+//Controller ou Service lança uma exceção
+//        ↓
+//ErrorHandlingMiddleware captura
+//        ↓
+//Transforma a exceção em resposta HTTP
+//        ↓
+//Retorna um JSON padronizado
+
+//throw new DomainException("Usuário não encontrado.");
+//Pode virar:
+
+//HTTP 400 Bad Request
+//{
+//  "sucesso": false,
+//  "mensagem": "Usuário não encontrado.",
+//  "traceId": "abc123"
+//}
 
 public sealed class ErrorHandlingMiddleware
 {
@@ -21,7 +45,7 @@ public sealed class ErrorHandlingMiddleware
         try
         {
             await _next(context);
-        }
+        } // Criado vários tipos de erros para que todos nao retornem exceções que não são planejadas, como erro no sistema.
         catch (ValidationException ex)
         {
             await HandleAppExceptionAsync(
@@ -29,28 +53,28 @@ public sealed class ErrorHandlingMiddleware
                 ex,
                 StatusCodes.Status400BadRequest);
         }
-        catch (AuthenticationException ex)
+        catch (AuthenticationException ex) // Se a pessoa está ou não autorizada
         {
             await HandleAppExceptionAsync(
                 context,
                 ex,
                 StatusCodes.Status401Unauthorized);
         }
-        catch (ForbiddenException ex)
+        catch (ForbiddenException ex) // Usuário existe mas está acessando uma área que não pode
         {
             await HandleAppExceptionAsync(
                 context,
                 ex,
                 StatusCodes.Status403Forbidden);
         }
-        catch (ConflictException ex)
+        catch (ConflictException ex) // Informações duplicadas
         {
             await HandleAppExceptionAsync(
                 context,
                 ex,
                 StatusCodes.Status409Conflict);
         }
-        catch (AppException ex)
+        catch (AppException ex) // Engloba o restante
         {
             // Segurança para alguma exceção de aplicação
             // que ainda não tenha um mapeamento específico.
@@ -59,7 +83,7 @@ public sealed class ErrorHandlingMiddleware
                 ex,
                 StatusCodes.Status400BadRequest);
         }
-        catch (Exception ex)
+        catch (Exception ex) // Erro interno
         {
             _logger.LogError(
                 ex,
@@ -80,7 +104,7 @@ public sealed class ErrorHandlingMiddleware
         HttpContext context,
         AppException exception,
         int statusCode)
-    {
+    { // Lança log com o problema
         _logger.LogWarning(
             exception,
             "Erro de aplicação {Codigo} em {Metodo} {Path}. TraceId: {TraceId}",
@@ -104,11 +128,11 @@ public sealed class ErrorHandlingMiddleware
     {
         if (context.Response.HasStarted)
             return;
-
+        // Limpa e formata a informação
         context.Response.Clear();
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/json; charset=utf-8";
-
+        // Todos os erros vão vir nesse padrão
         var response = new
         {
             sucesso = false,
