@@ -5,6 +5,7 @@ namespace Barbearia.HealthChecks;
 
 public static class HealthCheckResponseWriter
 {
+    //  Transforma o resultado em JSON
     public static Task WriteResponseAsync(HttpContext context, HealthReport report)
     {
         context.Response.ContentType = "application/json; charset=utf-8";

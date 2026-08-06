@@ -11,7 +11,22 @@ public sealed class CurrentUser : ICurrentUser
     {
         _httpContextAccessor = httpContextAccessor;
     }
-
+    // Responde quem é o usuário
+    //Requisição chega
+    //    ↓
+    //UseAuthentication()
+    //    ↓
+    //procura o esquema padrão configurado
+    //    ↓
+    //JwtBearer
+    //    ↓
+    //OnMessageReceived
+    //    ↓
+    //lê cookie access-token
+    //    ↓
+    //valida assinatura, issuer, audience e expiração
+    //    ↓
+    //preenche HttpContext.User
     private ClaimsPrincipal? User =>
         _httpContextAccessor.HttpContext?.User;
 

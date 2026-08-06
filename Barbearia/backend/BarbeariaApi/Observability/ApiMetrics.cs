@@ -1,4 +1,4 @@
-using System.Diagnostics.Metrics;
+﻿using System.Diagnostics.Metrics;
 
 namespace Barbearia.Observability;
 
@@ -10,6 +10,26 @@ public sealed class ApiMetrics : IDisposable
     public Counter<long> Errors { get; }
     public Histogram<double> RequestDuration { get; }
     public Counter<long> SlowRequests { get; }
+
+    //PerformanceMonitoringMiddleware
+    //        │
+    //        ▼
+    //ApiMetrics
+    //        │
+    //        ▼
+    //Meter
+    //        │
+    //        ▼
+    //OpenTelemetry
+    //        │
+    //        ▼
+    ///metrics
+    //        │
+    //        ▼
+    //Prometheus
+    //        │
+    //        ▼
+    //Grafana
 
     public ApiMetrics()
     {

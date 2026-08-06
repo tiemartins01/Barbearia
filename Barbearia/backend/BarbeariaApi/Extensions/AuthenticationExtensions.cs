@@ -153,7 +153,12 @@ public static class AuthenticationExtensions
                 policy => policy
                     .RequireAuthenticatedUser()
                     .AddRequirements(
-                        new ActiveUserRequirement()));
+                        new ActiveUserRequirement())); // ActiveUserHandler valida o ActiveUserRequirement
+
+            //ActiveUserRequirement
+            //        │
+            //        ▼
+            //ActiveUserHandler
 
             // Exige autenticação e a role Cliente.
             options.AddPolicy(

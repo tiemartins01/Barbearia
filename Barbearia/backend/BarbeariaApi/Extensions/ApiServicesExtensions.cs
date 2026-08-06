@@ -1,5 +1,6 @@
 ﻿using Barbearia.Core.Application.Abstractions;
 using BarbeariaApi.Security;
+using Microsoft.AspNetCore.Mvc;
 
 namespace BarbeariaApi.Extensions;
 
@@ -8,7 +9,11 @@ public static class ApiServicesExtensions
     public static IServiceCollection AddBarbeariaApiServices(
         this IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllers( options =>
+        {
+            options.Filters.Add(
+                new AutoValidateAntiforgeryTokenAttribute()); // Faz a validação do anti-forgery por comparação
+        });
         services.AddProblemDetails();
         services.AddEndpointsApiExplorer();
 
@@ -25,7 +30,7 @@ public static class ApiServicesExtensions
                 });
         });
 
-        services.AddHttpContextAccessor();
+        services.AddHttpContextAccessor(); // Permite que o HttpContext seja acessado fora dos controllers
 
         services.AddAntiforgery(options =>
         {
