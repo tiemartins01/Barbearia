@@ -72,7 +72,25 @@ namespace Barbearia.Core.Repository
                     "O barbeiro já possui um agendamento ativo neste horário.");
             }
         }
-        
+
+        //public async Task SaveChangesAsync()
+        //{
+        //    Console.WriteLine("===== SAVE CHANGES =====");
+
+        //    Console.WriteLine(
+        //        $"Transação ativa: {_context.Database.CurrentTransaction != null}");
+
+        //    foreach (var entry in _context.ChangeTracker.Entries())
+        //    {
+        //        Console.WriteLine(
+        //            $"{entry.Entity.GetType().Name} -> {entry.State}");
+        //    }
+
+        //    var resultado = await _context.SaveChangesAsync();
+
+        //    Console.WriteLine($"SALVOS: {resultado}");
+        //}
+
         public async ValueTask DisposeAsync()
         {
             if ( _transaction != null)

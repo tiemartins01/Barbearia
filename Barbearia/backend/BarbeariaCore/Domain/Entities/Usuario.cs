@@ -10,7 +10,7 @@ namespace Barbearia.Core.Domain.Entities;
 /// Aggregate Root responsável pelas regras de identidade, autenticação,
 /// bloqueio, ativação e recuperação de senha do usuário.
 /// </summary>
-public sealed class Usuario : AggregateRoot
+public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capacidade de armazenar eventos de domínio
 {
     public int Id { get; private set; }
     public string Nome { get; private set; } = string.Empty;

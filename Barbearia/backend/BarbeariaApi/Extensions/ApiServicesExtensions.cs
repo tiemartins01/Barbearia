@@ -9,7 +9,7 @@ public static class ApiServicesExtensions
     public static IServiceCollection AddBarbeariaApiServices(
         this IServiceCollection services)
     {
-        services.AddControllers( options =>
+        services.AddControllersWithViews( options =>
         {
             options.Filters.Add(
                 new AutoValidateAntiforgeryTokenAttribute()); // Faz a validação do anti-forgery por comparação

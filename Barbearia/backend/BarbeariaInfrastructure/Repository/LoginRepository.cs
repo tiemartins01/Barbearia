@@ -15,7 +15,7 @@ namespace Barbearia.Core.Repository
             _context = context;
         }
 
-        public  Task<Usuario?> ObterPorLoginAsync(string login) => _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(x => x.Login == login); // leitura e retorno das informações da pessoa!
+        public  Task<Usuario?> ObterPorLoginAsync(string login) => _context.Usuarios.FirstOrDefaultAsync(x => x.Login == login); // leitura e retorno das informações da pessoa!
 
         public Task Atualizar(Usuario usuario)
         {

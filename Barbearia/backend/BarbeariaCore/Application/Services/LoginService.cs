@@ -52,7 +52,7 @@ namespace Barbearia.Core.Service
 
             await _repository.Atualizar(usuario);
 
-            var response = await GerarTokensAsync(usuario); // já tem aqui o savechanges
+            var response = await GerarTokensAsync(usuario);
 
             _logger.LogInformation("Login realizado e tokens criados {id}", usuario.Id);
 
