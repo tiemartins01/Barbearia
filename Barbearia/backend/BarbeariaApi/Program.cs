@@ -100,6 +100,14 @@ app.MapHealthChecks("/health/ready", new HealthCheckOptions
     ResponseWriter = HealthCheckResponseWriter.WriteResponseAsync
 });
 
+//HealthCheckOptions
+//│
+//├── Predicate
+//│   └── quais Health Checks executar?
+//│
+//└── ResponseWriter
+//    └── como transformar o resultado em resposta HTTP?
+
 //Exemplo:
 //API rodando: sim
 //Banco conectado: não

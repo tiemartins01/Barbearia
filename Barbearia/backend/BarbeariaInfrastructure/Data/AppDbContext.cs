@@ -24,7 +24,7 @@ public sealed class AppDbContext : DbContext
      * por meio do DbContextOptions.
      */
 
-    //Program.cs decidirá se é PostgreSQL, SQL Server, memória etc.
+    // Quem está decidindo não é exatamente o Program.cs, mas a configuração lida pela DatabaseExtensions.
     // Faz a comunicação da aplicação com o banco
     //1. Representar as tabelas do banco por meio dos DbSets.
     //2. Acompanhar entidades adicionadas, alteradas e removidas.

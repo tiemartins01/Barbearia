@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Barbearia.HealthChecks;
@@ -26,3 +26,5 @@ public static class HealthCheckResponseWriter
         return context.Response.WriteAsync(JsonSerializer.Serialize(response));
     }
 }
+
+

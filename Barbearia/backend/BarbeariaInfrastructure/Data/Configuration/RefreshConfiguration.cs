@@ -14,12 +14,12 @@ namespace Barbearia.Core.Infrastructure.Configuration
             builder.Property(x => x.Id).HasColumnName("id");
             builder.Property(x => x.Id_usuario).IsRequired().HasColumnName("usuario_id");
             builder.Property(x => x.Token).IsRequired().HasMaxLength(512).HasColumnName("token");
-            builder.Property(x => x.ExpiraEM).IsRequired().HasColumnName("expira_em").HasColumnType("timestamp with time zone");
-            builder.Property(x => x.CriadoEM).IsRequired().HasColumnName("criado_em").HasColumnType("timestamp with time zone");
+            builder.Property(x => x.ExpiraEM).IsRequired().HasColumnName("expira_em");
+            builder.Property(x => x.CriadoEM).IsRequired().HasColumnName("criado_em");
             builder.Property(x => x.Revogado).IsRequired().HasColumnName("revogado");
             builder.Property(x => x.FamilyId).IsRequired().HasColumnName("family_id");
             builder.Property(x => x.ReplacedByToken).HasMaxLength(512).HasColumnName("replaced_by_token");
-            builder.Property(x => x.RevokedAtUtc).HasColumnName("revoked_at_utc").HasColumnType("timestamp with time zone");
+            builder.Property(x => x.RevokedAtUtc).HasColumnName("revoked_at_utc");
             builder.Property(x => x.RevocationReason).HasMaxLength(128).HasColumnName("revocation_reason");
             builder.Property(x => x.CreatedByIp).HasMaxLength(64).HasColumnName("created_by_ip");
 

@@ -12,9 +12,9 @@ public sealed class OutboxMessageConfiguration : IEntityTypeConfiguration<Outbox
         builder.HasKey(x => x.Id);
         builder.Property(x => x.Id).HasColumnName("id");
         builder.Property(x => x.Type).HasColumnName("type").HasMaxLength(512).IsRequired();
-        builder.Property(x => x.Payload).HasColumnName("payload").HasColumnType("jsonb").IsRequired();
-        builder.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.ProcessedAtUtc).HasColumnName("processed_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(x => x.Payload).HasColumnName("payload").IsRequired();
+        builder.Property(x => x.OccurredAtUtc).HasColumnName("occurred_at_utc");
+        builder.Property(x => x.ProcessedAtUtc).HasColumnName("processed_at_utc");
         builder.Property(x => x.RetryCount).HasColumnName("retry_count");
         builder.Property(x => x.LastError).HasColumnName("last_error").HasMaxLength(2000);
 

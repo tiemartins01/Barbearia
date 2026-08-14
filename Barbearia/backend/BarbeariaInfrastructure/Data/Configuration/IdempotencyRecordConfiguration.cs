@@ -17,9 +17,9 @@ public sealed class IdempotencyRecordConfiguration : IEntityTypeConfiguration<Id
         builder.Property(x => x.RequestHash).HasColumnName("request_hash").HasMaxLength(64).IsRequired();
         builder.Property(x => x.Status).HasColumnName("status").HasMaxLength(32).IsRequired();
         builder.Property(x => x.ResponseBody).HasColumnName("response_body").HasColumnType("text");
-        builder.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.ExpiresAtUtc).HasColumnName("expires_at_utc").HasColumnType("timestamp with time zone");
-        builder.Property(x => x.CompletedAtUtc).HasColumnName("completed_at_utc").HasColumnType("timestamp with time zone");
+        builder.Property(x => x.CreatedAtUtc).HasColumnName("created_at_utc");
+        builder.Property(x => x.ExpiresAtUtc).HasColumnName("expires_at_utc");
+        builder.Property(x => x.CompletedAtUtc).HasColumnName("completed_at_utc");
 
         builder.HasIndex(x => new { x.Key, x.UserId, x.Operation })
             .IsUnique()

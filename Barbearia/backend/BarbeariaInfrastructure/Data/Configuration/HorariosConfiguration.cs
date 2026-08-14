@@ -14,7 +14,7 @@ namespace Barbearia.Core.Infrastructure.Configuration
             e.Property(x => x.Id).HasColumnName("id");
             e.Property(x => x.Id_barbeiro).IsRequired().HasColumnName("id_barbeiro");
             e.Property(x => x.Id_cliente).IsRequired().HasColumnName("id_cliente");
-            e.Property(x => x.Horario).IsRequired().HasColumnName("horario").HasColumnType("timestamp without time zone");
+            e.Property(x => x.Horario).IsRequired().HasColumnName("horario");
             e.Property(x => x.StatusAgendamento).IsRequired().HasColumnName("status");
             e.Property(x => x.Id_servico).IsRequired().HasColumnName("id_servico");
 
@@ -32,10 +32,9 @@ namespace Barbearia.Core.Infrastructure.Configuration
             e.HasIndex(x => new { x.Id_barbeiro, x.Horario, x.StatusAgendamento })
                 .HasDatabaseName("ix_horarios_barbeiro_horario_status");
 
-            e.HasIndex(x => new { x.Id_barbeiro, x.Horario })
-                .IsUnique()
-                .HasFilter("\"status\" = 0")
-                .HasDatabaseName("ux_horarios_barbeiro_horario_ativo");
+            //e.HasIndex(x => new { x.Id_barbeiro, x.Horario })
+            //    .IsUnique()
+            //    .HasDatabaseName("ux_horarios_barbeiro_horario_ativo"); // .HasFilter("\"status\" = 0")
         }
 
     }

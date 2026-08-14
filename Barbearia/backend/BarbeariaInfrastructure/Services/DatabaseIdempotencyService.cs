@@ -3,16 +3,22 @@ using Barbearia.Core.Application.Abstractions;
 using Barbearia.Core.Exceptions;
 using Barbearia.Core.Infrastructure.Data;
 using Barbearia.Core.Infrastructure.Data.Operational;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 
 namespace Barbearia.Core.Infrastructure.Services;
 
 public sealed class DatabaseIdempotencyService : IIdempotencyService
 {
     private readonly AppDbContext _context;
+    private readonly IDatabaseErrorClassifier _databaseErrors;
 
-    public DatabaseIdempotencyService(AppDbContext context) => _context = context;
+    public DatabaseIdempotencyService(AppDbContext context, IDatabaseErrorClassifier databaseErrors)
+    {
+        _context = context;
+        _databaseErrors = databaseErrors;
+    }
+    
 
     public async Task<IdempotencyExecutionResult<T>> ExecuteAsync<T>(
         string key,
@@ -38,7 +44,7 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
         {
             await _context.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateException ex) when (IsUniqueViolation(ex))
+        catch (DbUpdateException ex) when (_databaseErrors.IsUniqueViolation(ex))
         {
             _context.Entry(record).State = EntityState.Detached;
             existing = await FindAsync(normalizedKey, userId, operation, cancellationToken)
@@ -86,7 +92,4 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
 
         return new IdempotencyExecutionResult<T>(value, true);
     }
-
-    private static bool IsUniqueViolation(DbUpdateException exception) =>
-        exception.InnerException is PostgresException { SqlState: PostgresErrorCodes.UniqueViolation };
 }

@@ -6,19 +6,16 @@
 
   <ItemGroup>
     <Folder Include="Data\Configuration\" />
-    <Folder Include="Data\Migrations\" />
+    <Folder Include="Data\DatabaseErrors\Abstractions\" />
     <Folder Include="Security\" />
     <Folder Include="Repository\" />
   </ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11">
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		  <PrivateAssets>all</PrivateAssets>
-		</PackageReference>
 
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.13" />
 	</ItemGroup>
 
   <PropertyGroup>
@@ -26,5 +23,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
 </Project>
+

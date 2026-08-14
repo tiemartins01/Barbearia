@@ -7,13 +7,45 @@ services:
     environment:
       POSTGRES_DB: barbearia
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
 
     ports:
       - "5433:5432"
 
     volumes:
       - barbearia_postgres_data:/var/lib/postgresql/data
+
+      
+  sqlserver:
+  image: mcr.microsoft.com/mssql/server:2022-latest
+  container_name: barbearia-sqlserver
+
+  environment:
+    ACCEPT_EULA: "Y"
+    MSSQL_SA_PASSWORD: "${SQLSERVER_PASSWORD}"
+
+  ports:
+    - "1433:1433"
+
+  volumes:
+    - barbearia_sqlserver_data:/var/opt/mssql
+
+
+  mysql:
+    image: mysql:8.4
+    container_name: barbearia-mysql
+
+    environment:
+      MYSQL_DATABASE: barbearia
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - barbearia_mysql_data:/var/lib/mysql
+
+    
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d barbearia"]
@@ -70,3 +102,5 @@ services:
 volumes:
   barbearia_postgres_data:
   grafana_data:
+  barbearia_sqlserver_data:
+  barbearia_mysql_data:

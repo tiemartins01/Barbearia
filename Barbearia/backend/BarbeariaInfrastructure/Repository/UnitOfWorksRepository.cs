@@ -1,15 +1,9 @@
 using Barbearia.Core.Exceptions;
 using Barbearia.Core.Infrastructure.Data;
 using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Npgsql;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Barbearia.Core.Repository
 {
     public class UnitOfWorksRepository : IUnitOfWork, IAsyncDisposable
@@ -17,11 +11,12 @@ namespace Barbearia.Core.Repository
 
         private readonly AppDbContext _context;
         private IDbContextTransaction? _transaction;
+        private readonly IDatabaseErrorClassifier _databaseError;
 
-        public UnitOfWorksRepository(AppDbContext context)
+        public UnitOfWorksRepository(AppDbContext context, IDatabaseErrorClassifier databaseError)
         {
             _context = context;
-
+            _databaseError = databaseError;
         }
         // INICIA UMA TRANSAÇÃO
         public async Task BeginTransactionAsync()
@@ -60,12 +55,10 @@ namespace Barbearia.Core.Repository
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) when (
-                ex.InnerException is PostgresException
-                {
-                    SqlState: PostgresErrorCodes.UniqueViolation,
-                    ConstraintName: "ux_horarios_barbeiro_horario_ativo"
-                })
+            catch (DbUpdateException ex) 
+                when (_databaseError.IsUniqueViolation(
+                    ex,
+                     "ux_horarios_barbeiro_horario_ativo"))
             {
                 throw new DomainException(
                     "APPOINTMENT_TIME_CONFLICT",

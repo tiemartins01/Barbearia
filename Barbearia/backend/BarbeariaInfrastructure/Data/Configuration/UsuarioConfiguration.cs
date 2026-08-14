@@ -21,10 +21,10 @@ namespace Barbearia.Core.Infrastructure.Configuration
             e.Property(x => x.Foto).HasColumnName("foto");
             e.Property(x => x.TentativasLogin).HasDefaultValue(0).HasColumnName("tentativaslogin");
             // timestamp without time zone INSERIDO PARA QUE FOSSE TRABALHADO EM HORÁRIO BRASILEIRO
-            e.Property(x => x.BloqueioAte).HasColumnName("bloqueioate").HasColumnType("timestamp without time zone");
+            e.Property(x => x.BloqueioAte).HasColumnName("bloqueioate");
             e.Property(x => x.Codigo).HasColumnName("codigo");
             // timestamp without time zone INSERIDO PARA QUE FOSSE TRABALHADO EM HORÁRIO BRASILEIRO
-            e.Property(x => x.CodigoRecuperacaoExpiraEm).HasColumnName("tempocodigo").HasColumnType("timestamp without time zone");
+            e.Property(x => x.CodigoRecuperacaoExpiraEm).HasColumnName("tempocodigo");
             e.Property(x => x.TentativasCodigo).HasDefaultValue(0).HasColumnName("tentativascodigo");
             e.Property(x => x.CodigoAtivo).HasColumnName("codigovalido");
 

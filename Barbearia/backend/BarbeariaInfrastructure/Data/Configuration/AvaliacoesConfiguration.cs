@@ -17,7 +17,7 @@ namespace Barbearia.Core.Infrastructure.Configuration
             e.Property(x => x.IdHorario).IsRequired().HasColumnName("id_horario");     
             e.Property(x => x.Nota).IsRequired().HasColumnName("nota");
             e.Property(x => x.Comentario).IsRequired().HasMaxLength(128).HasColumnName("comentario");
-            e.Property(x => x.Horario).IsRequired().HasColumnName("horario").HasColumnType("timestamp without time zone");
+            e.Property(x => x.Horario).IsRequired().HasColumnName("horario");
             e.Property(x => x.IdServico).IsRequired().HasColumnName("id_servico");
 
             // RELACIONAMENTO 1:N ONDE UM ÚNICO BARBEIRO PODE TER VÁRIAS AVALIAÇÕES E VÁRIAS AVALIAÇÕES PERTECEREM A UM ÚNICO BARBEIRO
