@@ -1,4 +1,4 @@
-namespace Barbearia.Core.Application.Abstractions;
+namespace BarbeariaCore.Application.Abstractions;
 // COM ISSO NÃO É MAIS NECESSÁRIO FICAR CHAMANDO JWT NO CONTROLLER TODA VEZ QUANDO QUER CONFERIR O USUÁRIO
 public interface ICurrentUser
 {

@@ -1,5 +1,5 @@
-﻿using Barbearia.Core.Interface;
-using Barbearia.Core.Service;
+﻿using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Services;
 using BarbeariaInfrastructure;
 
 namespace BarbeariaApi.Extensions

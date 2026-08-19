@@ -1,14 +1,14 @@
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Domain.Common;
-using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Infrastructure.Data.Operational;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Domain.Common;
+using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Infrastructure.Data.Operational;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
 
-namespace Barbearia.Core.Infrastructure.Data;
+namespace BarbeariaCore.Infrastructure.Data;
 
 public sealed class AppDbContext : DbContext
 {

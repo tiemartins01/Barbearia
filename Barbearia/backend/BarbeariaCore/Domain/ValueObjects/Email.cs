@@ -1,7 +1,7 @@
 ﻿using System.Net.Mail;
-using Barbearia.Core.Exceptions;
+using BarbeariaCore.Domain.Exceptions;
 
-namespace Barbearia.Core.Domain.ValueObjects
+namespace BarbeariaCore.Domain.ValueObjects
 {
     public sealed class Email
     {

@@ -1,7 +1,6 @@
-﻿using Barbearia.Core.Domain.ValueObjects;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Barbearia.Core.Domain.Common;
+namespace BarbeariaCore.Domain.Common;
 
 public abstract class AggregateRoot
 {

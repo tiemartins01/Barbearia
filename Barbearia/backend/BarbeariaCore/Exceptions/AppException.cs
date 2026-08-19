@@ -1,6 +1,6 @@
-﻿namespace Barbearia.Core.Exceptions;
+﻿namespace BarbeariaCore.Exceptions;
 
-public abstract class AppException : System.Exception
+public abstract class AppException : Exception
 {
     public string Code { get; }
 

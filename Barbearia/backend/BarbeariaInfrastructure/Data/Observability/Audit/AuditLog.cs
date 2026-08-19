@@ -1,4 +1,7 @@
-namespace BarbeariaCore.Domain.Entities;
+using System.Net;
+using static System.Net.WebRequestMethods;
+
+namespace BarbeariaInfrastructure.Data.Observability.Audit;
 
 public sealed class AuditLog
 {
@@ -36,3 +39,21 @@ public sealed class AuditLog
         RequestMethod = requestMethod;
     }
 }
+
+
+//O motivo é o conteúdo dele:
+
+//IpAddress
+//UserAgent
+//RequestPath
+//RequestMethod
+//CorrelationId
+
+//Esses dados existem por causa de:
+
+//HTTP
+//requisição web
+//middleware
+//observabilidade
+//segurança
+//rastreamento

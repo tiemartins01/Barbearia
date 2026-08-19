@@ -1,4 +1,4 @@
-﻿namespace Barbearia.Core.Interface
+﻿namespace BarbeariaCore.Application.Interfaces
 {
     public interface IEnviarEmail 
     {

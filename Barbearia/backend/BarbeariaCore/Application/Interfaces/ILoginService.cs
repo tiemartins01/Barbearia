@@ -1,12 +1,6 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BarbeariaCore.Application.DTOs;
 
-namespace Barbearia.Core.Interface
+namespace BarbeariaCore.Application.Interfaces
 {
     public interface ILoginService
     {

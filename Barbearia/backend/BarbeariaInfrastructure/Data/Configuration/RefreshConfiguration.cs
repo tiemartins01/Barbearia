@@ -1,8 +1,9 @@
-using Barbearia.Core.Domain.Entities;
+using BarbeariaInfrastructure.Security;
+using BarbeariaCore.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Barbearia.Core.Infrastructure.Configuration
+namespace BarbeariaInfrastructure.Configuration
 {
     public class RefreshConfiguration : IEntityTypeConfiguration<RefreshToken>
     {

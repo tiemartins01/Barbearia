@@ -1,7 +1,7 @@
 ﻿
-using Barbearia.Core.Domain.Entities;
+using BarbeariaCore.Domain.Entities;
 
-namespace Barbearia.Core.Interface
+namespace BarbeariaCore.Application.Interfaces
 {
     public interface ITrocaSenhaRepository
     {

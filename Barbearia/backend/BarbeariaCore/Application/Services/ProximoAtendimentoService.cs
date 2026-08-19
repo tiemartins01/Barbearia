@@ -1,10 +1,10 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class ProximoAtendimentoService : IProximoAtendimentoService
     {

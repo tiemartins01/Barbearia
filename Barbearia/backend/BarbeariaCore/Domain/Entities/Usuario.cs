@@ -1,10 +1,10 @@
-using Barbearia.Core.Domain.Common;
-using Barbearia.Core.Domain.Events;
-using Barbearia.Core.Domain.ValueObjects;
-using Barbearia.Core.Enum;
-using Barbearia.Core.Exceptions;
+using BarbeariaCore.Domain.Common;
+using BarbeariaCore.Domain.Events;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Exceptions;
 
-namespace Barbearia.Core.Domain.Entities;
+namespace BarbeariaCore.Domain.Entities;
 
 /// <summary>
 /// Aggregate Root responsável pelas regras de identidade, autenticação,
@@ -48,12 +48,10 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         Email = email ?? throw new DomainException("USER_INVALID_EMAIL", "E-mail é obrigatório.");
         Phone = phone ?? throw new DomainException("USER_INVALID_PHONE", "Telefone é obrigatório.");
         CPF = cpf ?? throw new DomainException("USER_INVALID_CPF", "CPF é obrigatório.");
-        Senha = senha ?? throw new DomainException("USER_INVALID_passwordHash", "Senha é obrigatória.");
+        Senha = senha ?? throw new DomainException("USER_INVALID_PASSWORD", "Senha é obrigatória.");
         Role = role;
         Ativado = ativado;
         Foto = string.IsNullOrWhiteSpace(foto) ? null : foto.Trim();
-
-        AddDomainEvent(new UsuarioCriadoDomainEvent(Id, Login));
     }
 
     public void AlterarDados(string nome, Email email, Phone telefone, Cpf cpf)
@@ -62,6 +60,17 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         Email = email ?? throw new DomainException("USER_INVALID_EMAIL", "E-mail é obrigatório.");
         Phone = telefone ?? throw new DomainException("USER_INVALID_PHONE", "Telefone é obrigatório.");
         CPF = cpf ?? throw new DomainException("USER_INVALID_CPF", "CPF é obrigatório.");
+    }
+
+    public void RegistrarCriacao()
+    {
+        if(Id <= 0)
+        {
+            throw new DomainException(
+            "USER_INVALID_ID",
+            "Usuário ainda não foi persistido.");
+        }
+        AddDomainEvent(new UsuarioCriadoDomainEvent(Id, Login));
     }
 
     public void AlterarSenhaPerfil(Senha senha)
@@ -92,8 +101,6 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         TentativasLogin = 0;
         BloqueioAte = null;
     }
-
-    public bool VerificarSituacao() => Ativado;
 
     public void GerarCodigo(string codigo) => GerarCodigo(codigo, DateTime.Now);
 
@@ -174,10 +181,6 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         TentativasCodigo = 0;
         CodigoAtivo = false;
     }
-
-    // Mantidos apenas para compatibilidade com testes legados.
-    public void ValorCodigo(string codigo) => Codigo = codigo;
-    public void ValorTempo(DateTime tempo) => CodigoRecuperacaoExpiraEm = tempo;
 
     private static string ValidarNome(string nome)
     {

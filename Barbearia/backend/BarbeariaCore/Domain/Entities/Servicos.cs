@@ -1,6 +1,6 @@
-﻿using Barbearia.Core.Exceptions;
+﻿using BarbeariaCore.Domain.Exceptions;
 
-namespace Barbearia.Core.Domain.Entities
+namespace BarbeariaCore.Domain.Entities
 {
     public sealed class Servicos
     {

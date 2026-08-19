@@ -1,15 +1,15 @@
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using Barbearia.Core.Exceptions;
+using BarbeariaCore.Domain.Exceptions;
 
-namespace Barbearia.Controllers
+namespace BarbeariaApi.Controllers
 {
     [ApiController]
     [Route("agendamento")]

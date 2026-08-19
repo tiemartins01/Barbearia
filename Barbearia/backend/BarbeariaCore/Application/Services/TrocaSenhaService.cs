@@ -1,11 +1,11 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Domain.ValueObjects;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Domain.Policies;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public sealed class TrocaSenhaService : ITrocaSenhaService
     {
@@ -23,27 +23,51 @@ namespace Barbearia.Core.Service
 
         public async Task<DTOResposta> RealizarTrocaSenha(string codigo, string email, string senha, string senharepetida)
         {
-            var usuario = await _repository.PegaInformacaoUsuario(email);
-            var senhaProtegida = Senha.Criar(senha, _passwordHash);
+            var usuario =
+                await _repository.PegaInformacaoUsuario(email);
 
             if (usuario is null || !usuario.Ativado)
-                throw new DomainException("PASSWORD_RESET_INVALID_DATA", "Dados inválidos!");
+            {
+                throw new DomainException(
+                    "PASSWORD_RESET_INVALID_DATA",
+                    "Dados inválidos!");
+            }
+
+            PoliticaSenha.Validar(senha);
+
+            if (!string.Equals(
+                    senha,
+                    senharepetida,
+                    StringComparison.Ordinal))
+            {
+                throw new DomainException(
+                    "PASSWORD_RESET_PASSWORD_MISMATCH",
+                    "Dados inválidos!");
+            }
 
             if (!usuario.CodigoIsValido())
-                throw new DomainException("PASSWORD_RESET_CODE_EXPIRED", "Codigo expirado! Solicite um novo código!");
+            {
+                throw new DomainException(
+                    "PASSWORD_RESET_CODE_EXPIRED",
+                    "Código expirado! Solicite um novo código!");
+            }
 
             if (!usuario.PodeTrocarSenha(codigo))
             {
                 await RegistrarFalhaAsync(usuario);
-                throw new DomainException("PASSWORD_RESET_INVALID_CODE", "Dados inválidos!");
+
+                throw new DomainException(
+                    "PASSWORD_RESET_INVALID_CODE",
+                    "Dados inválidos!");
             }
 
-            if (!string.Equals(senha,senharepetida,StringComparison.Ordinal))
-            {
-                throw new DomainException("PASSWORD_RESET_passwordHash_MISMATCH", "Dados inválidos!");
-            }
+            var senhaHash =
+                _passwordHash.Hash(senha);
 
-            usuario.AlterarSenha(senhaProtegida);
+            var senhaDominio =
+                Senha.DeHash(senhaHash);
+
+            usuario.AlterarSenha(senhaDominio);
 
             await _repository.AtualizaUsuario(usuario);
 
@@ -53,7 +77,6 @@ namespace Barbearia.Core.Service
             {
                 Sucesso = true,
                 Mensagem = "Senha alterada!"
-
             };
         }
 

@@ -1,7 +1,7 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.DTOs;
 
-namespace Barbearia.Core.Interface
+namespace BarbeariaCore.Application.Interfaces
 {
     public interface IProximoAtendimentoRepository
     {

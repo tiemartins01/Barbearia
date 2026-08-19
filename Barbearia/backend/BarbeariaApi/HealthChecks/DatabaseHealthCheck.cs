@@ -1,4 +1,4 @@
-using Barbearia.Core.Infrastructure.Data;
+using BarbeariaCore.Infrastructure.Data;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 namespace Barbearia.HealthChecks;

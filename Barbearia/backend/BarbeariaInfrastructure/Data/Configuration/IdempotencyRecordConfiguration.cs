@@ -1,8 +1,8 @@
-using Barbearia.Core.Infrastructure.Data.Operational;
+using BarbeariaCore.Infrastructure.Data.Operational;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Barbearia.Core.Infrastructure.Configuration;
+namespace BarbeariaCore.Infrastructure.Configuration;
 
 public sealed class IdempotencyRecordConfiguration : IEntityTypeConfiguration<IdempotencyRecord>
 {

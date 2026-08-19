@@ -1,4 +1,4 @@
-﻿namespace Barbearia.Core.Exceptions;
+﻿namespace BarbeariaCore.Exceptions;
 
 public sealed class ForbiddenException : AppException
 {

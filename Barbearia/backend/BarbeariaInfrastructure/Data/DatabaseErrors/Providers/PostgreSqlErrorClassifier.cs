@@ -6,7 +6,7 @@ public sealed class PostgreSqlErrorClassifier
     : IDatabaseErrorClassifier
 {
     public bool IsUniqueViolation(
-        DbUpdateException exception,
+        Exception exception,
         string? constraintName = null)
     {
         if (exception.InnerException

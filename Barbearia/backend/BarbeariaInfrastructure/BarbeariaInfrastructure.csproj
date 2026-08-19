@@ -7,15 +7,19 @@
   <ItemGroup>
     <Folder Include="Data\Configuration\" />
     <Folder Include="Data\DatabaseErrors\Abstractions\" />
-    <Folder Include="Security\" />
     <Folder Include="Repository\" />
   </ItemGroup>
 
 	<ItemGroup>
 
+		<PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
+
+		<PackageReference Include="Microsoft.IdentityModel.Tokens" Version="8.22.0" />
+
 		<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.11" />
-		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />
+		<PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.3" />	
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.13" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 	</ItemGroup>
 
   <PropertyGroup>

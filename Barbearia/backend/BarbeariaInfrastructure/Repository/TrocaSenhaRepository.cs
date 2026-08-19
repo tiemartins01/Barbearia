@@ -1,14 +1,9 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Infrastructure.Data;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Infrastructure.Data;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace Barbearia.Core.Repository
+namespace BarbeariaInfrastructure.Repository
 {
     public class TrocaSenhaRepository : ITrocaSenhaRepository
     {

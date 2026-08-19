@@ -1,10 +1,10 @@
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Exceptions;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
-namespace Barbearia.Controllers
+namespace BarbeariaApi.Controllers
 {
     [ApiController]
     [Route("trocar")]

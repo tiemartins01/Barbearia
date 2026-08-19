@@ -1,11 +1,10 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class LoginService : ILoginService
     {
@@ -42,7 +41,7 @@ namespace Barbearia.Core.Service
                
             ValidarUsuario(usuario, login);
 
-            if (!usuario.Senha.Verify(senha, _passwordHash))
+            if (!_passwordHash.Verify(senha, usuario.Senha.Hash)) 
             {
                 await RegistrarFalha(usuario, login);
                 throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");

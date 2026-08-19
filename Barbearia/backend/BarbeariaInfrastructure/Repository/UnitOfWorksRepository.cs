@@ -1,10 +1,10 @@
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Infrastructure.Data;
-using Barbearia.Core.Interface;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Infrastructure.Data;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-namespace Barbearia.Core.Repository
+
+namespace BarbeariaInfrastructure.Repository
 {
     public class UnitOfWorksRepository : IUnitOfWork, IAsyncDisposable
     {

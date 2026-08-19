@@ -1,4 +1,4 @@
-using Barbearia.Core.Exceptions;
+using BarbeariaCore.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using System.Runtime.Intrinsics.X86;
 using System.Security.Cryptography.Xml;

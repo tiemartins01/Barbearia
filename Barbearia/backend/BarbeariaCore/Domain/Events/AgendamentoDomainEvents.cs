@@ -1,7 +1,7 @@
-using Barbearia.Core.Domain.Common;
-using Barbearia.Core.Enum;
+using BarbeariaCore.Domain.Common;
+using BarbeariaCore.Domain.Enum;
 
-namespace Barbearia.Core.Domain.Events;
+namespace BarbeariaCore.Domain.Events;
 
 public sealed record AgendamentoCriadoDomainEvent(
     int AgendamentoId,

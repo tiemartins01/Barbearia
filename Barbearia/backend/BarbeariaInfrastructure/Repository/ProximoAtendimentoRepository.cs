@@ -1,12 +1,13 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Infrastructure.Data;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Infrastructure.Data;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Data;
 
 
-namespace Barbearia.Core.Repository
+namespace BarbeariaInfrastructure.Repository
 {
     public class ProximoAtendimentoRepository : IProximoAtendimentoRepository
     {
@@ -23,7 +24,7 @@ namespace Barbearia.Core.Repository
             var agora = DateTime.Now;
             return await _context.Horarios
                 .AsNoTracking()
-                .Where(x => x.Id_cliente == id && x.Horario > agora && x.StatusAgendamento == Enum.StatusAgendamento.Agendado)
+                .Where(x => x.Id_cliente == id && x.Horario > agora && x.StatusAgendamento == StatusAgendamento.Agendado)
                 .OrderBy(x => x.Horario)
                 .Select(x => new DTOProximoAgendamento
                 {
@@ -46,7 +47,7 @@ namespace Barbearia.Core.Repository
             return _context.Horarios.AsNoTracking().AnyAsync(x =>
                 x.Id_barbeiro == id_barbeiro &&
                 x.Horario == horario &&
-                x.StatusAgendamento == Enum.StatusAgendamento.Agendado);
+                x.StatusAgendamento == StatusAgendamento.Agendado);
         }
         // ESSE E DO SERVIÇO, É FEITO PARA QUE UMA PESSOA TENTE DE OUTRA FORMA ADICIONAR UM HORÁRIO COM BARBEIRO OU SERVIÇO EXISTENTE
         // EXEMPLO COM O POSTMAN, TENTA ADICIONAR NÃO PELO APLICATIVO

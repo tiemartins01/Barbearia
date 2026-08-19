@@ -1,12 +1,13 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Domain.ValueObjects;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Domain.Policies;
 using Microsoft.Extensions.Logging;
+using BarbeariaCore.Domain.Enum;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class AbaClienteService : IAbaClienteService
     {
@@ -100,14 +101,22 @@ namespace Barbearia.Core.Service
             new Email(dados.Email),
             new Phone(dados.Telefone),
             new Cpf(dados.Cpf));
+            
 
             if (!string.IsNullOrEmpty(dados.NovaSenha))
             {
-                if (!usuario.Senha.Verify(dados.SenhaAntiga,_passwordHash) || string.IsNullOrEmpty(dados.SenhaAntiga))
-                    throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválidas!");
+                PoliticaSenha.Validar(dados.NovaSenha);
 
-                usuario.AlterarSenha(new Senha(dados.NovaSenha));
+                if (_passwordHash.Verify(dados.SenhaAntiga,usuario.Senha.Hash) || string.IsNullOrEmpty(dados.SenhaAntiga))
+                    throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválidas!");
             }
+
+            var senhaHash = _passwordHash.Hash(dados.NovaSenha);
+
+            var senhaDominio = Senha.DeHash(senhaHash);
+
+            usuario.AlterarSenha(senhaDominio);
+
             await _uow.SaveChangesAsync();
         }
 
@@ -154,7 +163,7 @@ namespace Barbearia.Core.Service
                 throw new DomainException("ACTION_DENIED", "Dados inválidos!");
             }
 
-            if (horario.StatusAgendamento != Enum.StatusAgendamento.Concluido)
+            if (horario.StatusAgendamento != StatusAgendamento.Concluido)
             {
                 _logger.LogWarning("Status diferente de concluido no id {}", avaliacao.Id);
                 throw new DomainException("DIFFERENT_STATUS", "Status indisponível!");

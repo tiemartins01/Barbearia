@@ -1,5 +1,5 @@
-﻿using Barbearia.Core.Exceptions;
-namespace Barbearia.Core.Domain.ValueObjects
+﻿using BarbeariaCore.Domain.Exceptions;
+namespace BarbeariaCore.Domain.ValueObjects
 {
     public sealed class Cpf // sealed para não ter herança
     {

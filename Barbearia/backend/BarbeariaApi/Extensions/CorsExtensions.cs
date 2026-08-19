@@ -1,5 +1,4 @@
-﻿using Google.Protobuf.WellKnownTypes;
-
+﻿
 namespace BarbeariaApi.Extensions;
 public static class CorsExtensions // Diz ao navegador quais sites podem acessar sua API.
 { // O CORS controla quais frontends podem acessar sua API pelo navegador.

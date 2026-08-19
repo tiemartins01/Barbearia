@@ -1,6 +1,6 @@
-using Barbearia.Core.Domain.Common;
+using BarbeariaCore.Domain.Common;
 
-namespace Barbearia.Core.Domain.Events;
+namespace BarbeariaCore.Domain.Events;
 
 public sealed record UsuarioCriadoDomainEvent(int UsuarioId, string Login) : IDomainEvent
 {

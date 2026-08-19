@@ -1,5 +1,5 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class TokenService : ITokenService
     {

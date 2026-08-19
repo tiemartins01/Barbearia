@@ -1,5 +1,5 @@
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Domain.ValueObjects;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Domain.ValueObjects;
 using Microsoft.Extensions.Hosting;
 
 namespace BarbeariaApi.Security;

@@ -7,7 +7,7 @@ namespace BarbeariaInfrastructure.Data.DatabaseErrors.Providers
     public sealed class SqlServerErrorClassifier: IDatabaseErrorClassifier
     {
         public bool IsUniqueViolation(
-            DbUpdateException exception,
+            Exception exception,
             string? constraintName = null)
         {
             if (exception.InnerException is not SqlException sql)

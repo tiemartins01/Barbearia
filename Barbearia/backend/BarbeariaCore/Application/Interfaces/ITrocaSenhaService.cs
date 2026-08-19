@@ -1,6 +1,6 @@
-﻿using Barbearia.Core.DTO;
+﻿using BarbeariaCore.Application.DTOs;
 
-namespace Barbearia.Core.Interface
+namespace BarbeariaCore.Application.Interfaces
 {
     public interface ITrocaSenhaService
     {

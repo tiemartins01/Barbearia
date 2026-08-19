@@ -1,6 +1,6 @@
-﻿namespace Barbearia.Core.Exceptions;
+﻿namespace BarbeariaCore.Domain.Exceptions;
 
-public sealed class DomainException: System.Exception
+public sealed class DomainException: Exception
 {
     public string Code { get; }
     // Apenas criar as mensagens em caso de erro ou sucesso!

@@ -1,10 +1,10 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Domain.ValueObjects;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 
-namespace Barbearia.Core.Infrastructure.Configuration
+namespace BarbeariaInfrastructure.Configuration
 {
     public class UsuarioConfiguration : IEntityTypeConfiguration<Usuario>
     {
@@ -32,7 +32,7 @@ namespace Barbearia.Core.Infrastructure.Configuration
             // VALUE OBJECTS
             e.OwnsOne(x => x.Senha, senha =>
             {
-                senha.Property(p => p.SenhaHash).HasColumnName("senha").HasMaxLength(100).IsRequired();
+                senha.Property(p => p.Hash).HasColumnName("senha").HasMaxLength(100).IsRequired();
             });
 
             e.OwnsOne(x => x.Email, email =>

@@ -1,8 +1,8 @@
-﻿using Barbearia.Core.Domain.Entities;
+﻿using BarbeariaCore.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Barbearia.Core.Infrastructure.Configuration
+namespace BarbeariaCore.Infrastructure.Configuration
 {
     public class AvaliacoesConfiguration : IEntityTypeConfiguration<Avaliacoes>
     {

@@ -1,10 +1,8 @@
 ﻿using Barbearia.BackgroundServices;
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Infrastructure.Services;
-using Barbearia.Core.Interface;
-using Barbearia.Core.Repository;
-using Barbearia.Core.Service;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Application.Services;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaInfrastructure.Repository;
 using BarbeariaInfrastructure.Security;
 
 namespace BarbeariaApi.Extensions

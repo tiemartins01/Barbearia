@@ -1,6 +1,6 @@
 ﻿using System.Security.Cryptography;
 
-namespace Barbearia.Core.Security
+namespace BarbeariaCore.Security
 {
     public static class CodeGenerator
     {

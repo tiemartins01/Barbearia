@@ -1,7 +1,7 @@
-using Barbearia.Core.DTO;
+using BarbeariaCore.Application.DTOs;
 using FluentValidation;
 
-namespace Barbearia.Core.Application.Validation;
+namespace BarbeariaCore.Application.Validation;
 
 public sealed class DTOMudarSenhaValidator : AbstractValidator<DTOMudarSenha>
 {

@@ -1,4 +1,4 @@
-﻿namespace Barbearia.Core.DTO
+﻿namespace BarbeariaCore.Application.DTOs
 {
     public class DTOHistorico
     {

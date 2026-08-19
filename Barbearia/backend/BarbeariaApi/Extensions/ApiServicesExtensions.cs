@@ -1,4 +1,4 @@
-﻿using Barbearia.Core.Application.Abstractions;
+﻿using BarbeariaCore.Application.Abstractions;
 using BarbeariaApi.Security;
 using Microsoft.AspNetCore.Mvc;
 

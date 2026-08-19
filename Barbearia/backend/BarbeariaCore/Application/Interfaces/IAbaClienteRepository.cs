@@ -1,10 +1,10 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.DTO;
-namespace Barbearia.Core.Interface
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.DTOs;
+
+namespace BarbeariaCore.Application.Interfaces
 {
     public interface IAbaClienteRepository
     {
-
         Task<List<DTOBarbeiro>> BuscarTodosBarbeiros();
         Task<List<DTOHistorico>> Historico(int id, int page, int pageSize);
         Task<DTODadosPessoais> DadosPessoais(int id);

@@ -1,8 +1,7 @@
-using Barbearia.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Barbearia.Core.Infrastructure.Configuration;
+namespace BarbeariaInfrastructure.Data.Observability.Audit;
 
 public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
 {

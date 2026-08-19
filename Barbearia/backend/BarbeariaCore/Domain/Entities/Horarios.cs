@@ -1,9 +1,9 @@
-using Barbearia.Core.Domain.Common;
-using Barbearia.Core.Domain.Events;
-using Barbearia.Core.Enum;
-using Barbearia.Core.Exceptions;
+using BarbeariaCore.Domain.Common;
+using BarbeariaCore.Domain.Events;
+using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Exceptions;
 
-namespace Barbearia.Core.Domain.Entities;
+namespace BarbeariaCore.Domain.Entities;
 
 /// <summary>
 /// Aggregate Root do ciclo de vida de um agendamento.

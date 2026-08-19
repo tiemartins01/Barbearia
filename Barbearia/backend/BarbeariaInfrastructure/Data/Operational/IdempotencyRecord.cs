@@ -1,4 +1,4 @@
-namespace Barbearia.Core.Infrastructure.Data.Operational;
+namespace BarbeariaCore.Infrastructure.Data.Operational;
 
 public sealed class IdempotencyRecord
 {

@@ -1,5 +1,5 @@
 ﻿using System.Security.Claims;
-using Barbearia.Core.Application.Abstractions;
+using BarbeariaCore.Application.Abstractions;
 
 namespace BarbeariaApi.Security;
 

@@ -1,4 +1,4 @@
-namespace Barbearia.Core.Application.Abstractions;
+namespace BarbeariaCore.Application.Abstractions;
 
 public sealed record IdempotencyExecutionResult<T>(T Value, bool Replayed);
 

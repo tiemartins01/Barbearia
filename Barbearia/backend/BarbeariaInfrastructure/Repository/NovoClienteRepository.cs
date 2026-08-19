@@ -1,11 +1,11 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Domain.ValueObjects;
-using Barbearia.Core.Enum;
-using Barbearia.Core.Infrastructure.Data;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Infrastructure.Data;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Barbearia.Core.Repository
+namespace BarbeariaInfrastructure.Repository
 {
     public class NovoClienteRepository : INovoClienteRepository
     {

@@ -1,13 +1,10 @@
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Interface;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.VisualBasic;
-using System.Data;
-using System.Security.Claims;
 
-namespace Barbearia.Controllers
+namespace BarbeariaApi.Controllers
 {
     [ApiController]
     [Route("cliente")]

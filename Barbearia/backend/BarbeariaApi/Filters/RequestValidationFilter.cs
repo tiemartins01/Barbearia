@@ -1,10 +1,7 @@
-using Barbearia.Core.Domain.ValueObjects;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using OpenTelemetry.Metrics;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.ConstrainedExecution;
+
 
 namespace Barbearia.Filters;
 // Valida os objetos recebidos pelo Controller antes de executar a action

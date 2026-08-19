@@ -1,6 +1,4 @@
-using Barbearia.Core.Domain.Events;
-
-namespace Barbearia.Core.Domain.Common;
+namespace BarbeariaCore.Domain.Common;
 
 public interface IDomainEvent
 { // Com isso, todo sistema consegue ser tratado da mesma maneira, mesmo sendo eventos diferentes.

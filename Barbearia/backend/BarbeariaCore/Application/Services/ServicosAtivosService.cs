@@ -1,7 +1,7 @@
-﻿using Barbearia.Core.DTO;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.Interfaces;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class ServicosAtivosService : IServicosService
     {

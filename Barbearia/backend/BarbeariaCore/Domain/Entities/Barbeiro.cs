@@ -1,4 +1,4 @@
-﻿namespace Barbearia.Core.Domain.Entities
+﻿namespace BarbeariaCore.Domain.Entities
 {
     public sealed class Barbeiro
     {

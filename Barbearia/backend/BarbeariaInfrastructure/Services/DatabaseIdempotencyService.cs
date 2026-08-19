@@ -1,12 +1,12 @@
 using System.Text.Json;
-using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Infrastructure.Data;
-using Barbearia.Core.Infrastructure.Data.Operational;
+using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Infrastructure.Data;
+using BarbeariaCore.Infrastructure.Data.Operational;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Barbearia.Core.Infrastructure.Services;
+namespace BarbeariaCore.Application.Services;
 
 public sealed class DatabaseIdempotencyService : IIdempotencyService
 {

@@ -1,12 +1,13 @@
-﻿using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Domain.ValueObjects;
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Domain.Policies;
+using BarbeariaCore.Domain.Enum;
 using Microsoft.Extensions.Logging;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class NovoClienteService : INovoClienteService
     {
@@ -33,7 +34,10 @@ namespace Barbearia.Core.Service
             var emailNormalizado = new Email(email);
             var telefoneNormalizado = new Phone(telefone);
             var cpfNormalizado = new Cpf(cpf);
-            var senhaProtegida = Senha.Criar(senha, _hash);
+
+            PoliticaSenha.Validar(senha);
+            var hash = _hash.Hash(senha);
+            var senhaDominio = Senha.DeHash(hash);
 
             await ValidarDuplicidadeAsync(emailNormalizado.EmailPessoa, cpfNormalizado.Numero, telefoneNormalizado.Telefone, login);
 
@@ -44,8 +48,8 @@ namespace Barbearia.Core.Service
                 telefoneNormalizado,
                 cpfNormalizado,
                 login,
-                senhaProtegida,
-                Enum.RolePerson.Cliente,
+                senhaDominio,
+                RolePerson.Cliente,
                 true,
                 foto
             );
@@ -53,6 +57,12 @@ namespace Barbearia.Core.Service
             await _repository.CadastraNovoClienteAsync(novo_usuario);
 
             await _uow.SaveChangesAsync();
+
+            novo_usuario.RegistrarCriacao();
+
+            await _uow.SaveChangesAsync(); // para que o UsuarioCriadoDomainEvent não fique com id 0
+            // Evitando que o DomainEvent capture o Id cedo demais e fique permanentemente com 0.
+
             _logger.LogInformation("Usuário novo cadastrado com o login: {login}", login);
             return new DTOResposta
             {

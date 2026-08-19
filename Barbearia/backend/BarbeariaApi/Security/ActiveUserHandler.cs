@@ -1,6 +1,6 @@
-﻿using Barbearia.Core.Application.Abstractions;
-using Barbearia.Core.Domain.Entities;
-using Barbearia.Core.Infrastructure.Data;
+﻿using BarbeariaCore.Application.Abstractions;
+using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 

@@ -1,8 +1,8 @@
-using Barbearia.Core.DTO;
-using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Application.Interfaces;
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class RefreshTokenService : IRefreshTokenService
     {

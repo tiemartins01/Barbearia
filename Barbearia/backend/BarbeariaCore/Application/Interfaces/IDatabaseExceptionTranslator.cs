@@ -1,11 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace BarbeariaCore.Application.Interfaces
+﻿namespace BarbeariaCore.Application.Interfaces
 {
     public interface IDatabaseErrorClassifier
     {
         bool IsUniqueViolation(
-            DbUpdateException exception,
+            Exception exception,
             string? constraintName = null);
     }
 }

@@ -1,6 +1,6 @@
-﻿using Barbearia.Core.Enum;
+﻿using BarbeariaCore.Domain.Enum;
 
-namespace Barbearia.Core.DTO;
+namespace BarbeariaCore.Application.DTOs;
 
 // CRIADO PARA RETORNAR OS HORÁRIOS SEM QUE TENHAM ACESSO AO DOMINIO QUANDO FOSSE RETORNAR AS INFORMAÇÕES
 public sealed class DTOHorarioDetalhes

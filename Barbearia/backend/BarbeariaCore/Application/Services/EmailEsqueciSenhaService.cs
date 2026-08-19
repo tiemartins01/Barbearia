@@ -1,10 +1,10 @@
-﻿using Barbearia.Core.Exceptions;
-using Barbearia.Core.Interface;
+﻿using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
-using Barbearia.Core.Security;
+using BarbeariaCore.Security;
 
 
-namespace Barbearia.Core.Service
+namespace BarbeariaCore.Application.Services
 {
     public class EmailEsqueciSenhaService : IEmailEsqueciSenhaService
     {
