@@ -64,18 +64,18 @@ namespace BarbeariaInfrastructure.Repository
 
         // HISTÓRICO DE SERVIÇOS DO CLIENTE, SENDO APENAS OS SERVIÇOS QUE FORAM CONCLUI
         public  Task<List<DTOHistorico>> Historico(int id, int page, int pageSize) =>
-            _context.Horarios.AsNoTracking().Where(x => x.Id_cliente == id && (x.StatusAgendamento == StatusAgendamento.Avaliado || x.StatusAgendamento == StatusAgendamento.Concluido))
+            _context.Agendamentos.AsNoTracking().Where(x => x.ClienteId == id && (x.Status == StatusAgendamento.Avaliado || x.Status == StatusAgendamento.Concluido))
                 .OrderByDescending(x => x.Horario)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .Select(x => new DTOHistorico
                 {
                     Id = x.Id,
-                    NomeServico = x.Servicos.Nome,
+                    NomeServico = x.Servico.Nome,
                     NomeBarbeiro = x.Barbeiro.Usuario.Nome,
-                    ValorServico = x.Servicos.Preco,
+                    ValorServico = x.Servico.Preco,
                     Data = x.Horario,
-                    PodeAvaliar = x.StatusAgendamento == StatusAgendamento.Concluido
+                    PodeAvaliar = x.Status == StatusAgendamento.Concluido
                 }).ToListAsync();
         
         // TODOS OS DADOS PESSOAIS DO CLIENTE
@@ -92,10 +92,10 @@ namespace BarbeariaInfrastructure.Repository
                 Email = x.Email.ToString(),
                 Telefone = x.Phone.Telefone,
                 Cpf = x.CPF.Numero,
-                QtdCortes = _context.Horarios.Count(a =>
-                    a.Id_cliente == x.Id &&
-                    (a.StatusAgendamento == StatusAgendamento.Concluido ||
-                        a.StatusAgendamento == StatusAgendamento.Avaliado))
+                QtdCortes = _context.Agendamentos.Count(a =>
+                    a.ClienteId == x.Id &&
+                    (a.Status == StatusAgendamento.Concluido ||
+                        a.Status == StatusAgendamento.Avaliado))
                 }).SingleOrDefaultAsync();
 
 
@@ -113,8 +113,8 @@ namespace BarbeariaInfrastructure.Repository
                 Cpf = dados.Cpf
             };
         }
-        public  Task<Horarios?> BuscarHorarioParaAtualizarAsync(int id) => _context.Horarios.FirstOrDefaultAsync(x => x.Id == id && StatusAgendamento.Avaliado != x.StatusAgendamento);
-        public  Task<Horarios?>HorarioValidoAsync(int id) =>  _context.Horarios.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id );
+        public  Task<Agendamento?> BuscarHorarioParaAtualizarAsync(int id) => _context.Agendamentos.FirstOrDefaultAsync(x => x.Id == id && StatusAgendamento.Avaliado != x.Status);
+        public  Task<Agendamento?>HorarioValidoAsync(int id) =>  _context.Agendamentos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id );
         public async Task RealizarAvaliacaoAsync(Avaliacoes avaliacao)
         {
             await _context.Avaliacoes.AddAsync(avaliacao);

@@ -1,8 +1,7 @@
 using BarbeariaCore.Exceptions;
-using Microsoft.AspNetCore.Mvc;
-using System.Runtime.Intrinsics.X86;
-using System.Security.Cryptography.Xml;
 using System.Text.Json;
+using BarbeariaCore.Domain.Exceptions;
+
 
 namespace Barbearia.Middleware;
 // Middleware responsável por capturar exceções que aconteceram durante a requisição.
@@ -82,6 +81,22 @@ public sealed class ErrorHandlingMiddleware
                 context,
                 ex,
                 StatusCodes.Status400BadRequest);
+        }
+        catch (DomainException ex) // Engloba o restante
+        {
+            _logger.LogWarning(
+        ex,
+        "Erro de domínio {Codigo} em {Metodo} {Path}. TraceId: {TraceId}",
+        ex.Code,
+        context.Request.Method,
+        context.Request.Path,
+        context.TraceIdentifier);
+
+            await WriteResponseAsync(
+                context,
+                StatusCodes.Status400BadRequest,
+                ex.Code,
+                ex.Message);
         }
         catch (Exception ex) // Erro interno
         {

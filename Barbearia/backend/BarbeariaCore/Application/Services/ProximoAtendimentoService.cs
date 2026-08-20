@@ -69,13 +69,16 @@ namespace BarbeariaCore.Application.Services
 
             await ValidarServicoAsync(idServico);
 
-            await ValidarDisponibilidadeAsync(idBarbeiro, horario);
+            var agora = DateTime.UtcNow;
 
-            var agendamento = new Horarios(
+            await ValidarDisponibilidadeAsync(idBarbeiro, horario);            
+
+            var agendamento = new Agendamento(
                 idUsuario,
                 idBarbeiro,
                 idServico,
-                horario);
+                horario,
+                agora);
 
             await _uow.BeginTransactionAsync();
 
@@ -85,7 +88,9 @@ namespace BarbeariaCore.Application.Services
 
                 await _uow.SaveChangesAsync();
 
-                await _uow.CommitTransactionAsync();
+                agendamento.RegistrarCriacao();
+
+                await _uow.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "Agendamento criado. Cliente={Cliente} Barbeiro={Barbeiro} Serviço={Servico} Horario={Horario}",

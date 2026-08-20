@@ -1,11 +1,15 @@
-﻿using BarbeariaCore.Domain.Entities;
-using BarbeariaCore.Domain.ValueObjects;
-using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Domain.Exceptions;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Domain.Policies;
-using Microsoft.Extensions.Logging;
+using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Policies;
+using BarbeariaCore.Domain.ValueObjects;
+using BarbeariaCore.Exceptions;
+using Microsoft.Extensions.Logging;
+using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
+using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
 namespace BarbeariaCore.Application.Services
 {
@@ -27,29 +31,19 @@ namespace BarbeariaCore.Application.Services
         // APENAS PARA RETORNAR OS BARBEIROS CADASTRADOS E ATIVOS
         public async Task<List<DTOBarbeiro>> BuscarBarbeiros()
         {
-            var lista = await _repository.BuscarTodosBarbeiros();
-
-            if (lista.Count == 0)
-                throw new DomainException("WITHOUT_BARBER","Sem barbeiros cadastrados!");
-
-            return lista;
+            return await _repository.BuscarTodosBarbeiros();
         }
 
         // APENAS PARA RETORNAR O HISTÓRICO DOS CLIENTES
         public async Task<List<DTOHistorico>> HistoricoCliente(int idCliente, int page, int pageSize)
         {
-            var historico = await _repository.Historico(idCliente,page, pageSize);
-
-            if (historico.Count == 0)
-                throw new DomainException("NO_HISTORY","Nenhum serviço realizado!");
-
-            return historico;
+            return await _repository.Historico(idCliente, page, pageSize);
         }
 
         // APENAS PARA RETORNAR OS DADOS PESSOAIS DO CLIENTE
         public async Task<DTODadosPessoais> DadosPessoaisAsync(int idCliente)
         {
-            return await _repository.DadosPessoais(idCliente); 
+            return await _repository.DadosPessoais(idCliente);
         }
 
         // PEGA OS HORÁRIOS VÁLIDOS
@@ -62,11 +56,11 @@ namespace BarbeariaCore.Application.Services
             return new DTOHorarioDetalhes
             {
                 Id = horario.Id,
-                IdCliente = horario.Id_cliente,
-                IdBarbeiro = horario.Id_barbeiro,
-                IdServico = horario.Id_servico,
+                IdCliente = horario.ClienteId,
+                IdBarbeiro = horario.BarbeiroId,
+                IdServico = horario.ServicoId,
                 Horario = horario.Horario,
-                Status = horario.StatusAgendamento
+                Status = horario.Status
             };
         }
 
@@ -75,17 +69,17 @@ namespace BarbeariaCore.Application.Services
             var horario = await _repository.HorarioValidoAsync(id);
             if (horario is null) return null;
 
-            if (horario.Id_cliente != userId)
-                throw new DomainException("RESOURCE_ACCESS_DENIED", "Você não possui acesso a este agendamento.");
+            if (horario.ClienteId != userId)
+                throw new ForbiddenException("RESOURCE_ACCESS_DENIED", "Você não possui acesso a este agendamento.");
 
             return new DTOHorarioDetalhes
             {
                 Id = horario.Id,
-                IdCliente = horario.Id_cliente,
-                IdBarbeiro = horario.Id_barbeiro,
-                IdServico = horario.Id_servico,
+                IdCliente = horario.ClienteId,
+                IdBarbeiro = horario.BarbeiroId,
+                IdServico = horario.ServicoId,
                 Horario = horario.Horario,
-                Status = horario.StatusAgendamento
+                Status = horario.Status
             };
         }
 
@@ -94,29 +88,28 @@ namespace BarbeariaCore.Application.Services
         {
             var usuario = await _repository.GetUsuarioAsync(dados.Id);
 
-            if(usuario == null)
+            if (usuario == null)
                 throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
 
             usuario.AlterarDados(dados.Nome,
             new Email(dados.Email),
             new Phone(dados.Telefone),
             new Cpf(dados.Cpf));
-            
+
 
             if (!string.IsNullOrEmpty(dados.NovaSenha))
             {
                 PoliticaSenha.Validar(dados.NovaSenha);
 
-                if (_passwordHash.Verify(dados.SenhaAntiga,usuario.Senha.Hash) || string.IsNullOrEmpty(dados.SenhaAntiga))
-                    throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválidas!");
+                if (!_passwordHash.Verify(dados.SenhaAntiga, usuario.Senha.Hash) || string.IsNullOrEmpty(dados.SenhaAntiga))
+                    throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+
+                var senhaHash = _passwordHash.Hash(dados.NovaSenha);
+
+                var senhaDominio = Senha.DeHash(senhaHash);
+
+                usuario.AlterarSenha(senhaDominio);
             }
-
-            var senhaHash = _passwordHash.Hash(dados.NovaSenha);
-
-            var senhaDominio = Senha.DeHash(senhaHash);
-
-            usuario.AlterarSenha(senhaDominio);
-
             await _uow.SaveChangesAsync();
         }
 
@@ -139,16 +132,16 @@ namespace BarbeariaCore.Application.Services
             if (!nova_avaliacao.HorarioMenor(avaliacao.Horario))
             {
                 _logger.LogWarning("{} tentou avaliar antes de concluir o horário", id_cliente);
-                throw new DomainException("ACTION_DENIED", "Dados inválidos!");
+                throw new ValidationException("ACTION_DENIED", "Dados inválidos!");
             }
 
             await _repository.RealizarAvaliacaoAsync(nova_avaliacao);
             var horarioParaAtualizar = await _repository.BuscarHorarioParaAtualizarAsync(avaliacao.Id_horario);
             if (horarioParaAtualizar != null)
-                horarioParaAtualizar.Avaliado();
+                horarioParaAtualizar.MarcarComoAvaliado();
 
             await _uow.SaveChangesAsync();
-    
+
             _logger.LogInformation("Avaliacao correta feita no horário de id: {}", avaliacao.Id_horario);
         }
 
@@ -160,36 +153,36 @@ namespace BarbeariaCore.Application.Services
             if (horario == null)
             {
                 _logger.LogWarning("Informações inexistente!");
-                throw new DomainException("ACTION_DENIED", "Dados inválidos!");
+                throw new ValidationException("ACTION_DENIED", "Dados inválidos!");
             }
 
-            if (horario.StatusAgendamento != StatusAgendamento.Concluido)
+            if (horario.Status != StatusAgendamento.Concluido)
             {
                 _logger.LogWarning("Status diferente de concluido no id {}", avaliacao.Id);
-                throw new DomainException("DIFFERENT_STATUS", "Status indisponível!");
+                throw new ConflictException("DIFFERENT_STATUS", "Status indisponível!");
             }
 
-            if (horario.Id_cliente != id_cliente)
+            if (horario.ClienteId != id_cliente)
             {
                 _logger.LogWarning("Id do cliente não é o mesmo de logado! Id: {}", id_cliente);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS","Informação inválida!");
+                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
             }
 
-            if (horario.Id_barbeiro != avaliacao.Id_barbeiro)
+            if (horario.BarbeiroId != avaliacao.Id_barbeiro)
             {
                 _logger.LogWarning("Id do barbeiro não é o mesmo do horário! Id: {}", avaliacao.Id_barbeiro);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS","Informação inválida!");
+                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
             }
 
-            if(horario.Id_servico != avaliacao.Id_servico)
+            if (horario.ServicoId != avaliacao.Id_servico)
             {
                 _logger.LogWarning("Id do serviço não é o mesmo do horário! Id: {}", avaliacao.Id_servico);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS","Informação inválida!");
+                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
             }
             if (horario.Id != avaliacao.Id_horario)
             {
                 _logger.LogWarning("Id do horário não é o mesmo do banco de dados! Id: {}", avaliacao.Id_horario);
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
+                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
             }
         }
     }

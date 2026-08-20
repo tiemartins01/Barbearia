@@ -1,4 +1,4 @@
-using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Application.Models;
 
 namespace BarbeariaCore.Application.Interfaces
 {
@@ -6,10 +6,10 @@ namespace BarbeariaCore.Application.Interfaces
     {
         Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm);
         Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm, Guid familyId, string? createdByIp);
-        Task<RefreshToken?> GetAsync(string token);
+        Task<RefreshTokenData?> GetAsync(string token);
         Task RevokeAsync(string token);
         Task RevokeAsync(string token, string? replacedByToken, string? reason);
-        Task<IReadOnlyList<RefreshToken>> ListByUserAsync(int userId);
+        Task<IReadOnlyList<RefreshTokenData>> ListByUserAsync(int userId);
         Task RevokeAllByUserAsync(int userId);
         Task RevokeFamilyAsync(Guid familyId, string reason);
         Task<bool> RevokeByIdAsync(int sessionId, int userId);

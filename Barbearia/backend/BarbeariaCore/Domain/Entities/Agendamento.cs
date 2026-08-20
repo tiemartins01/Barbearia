@@ -9,46 +9,55 @@ namespace BarbeariaCore.Domain.Entities;
 /// Aggregate Root do ciclo de vida de um agendamento.
 /// Somente esta entidade pode alterar o status do atendimento.
 /// </summary>
-public sealed class Horarios : AggregateRoot
+public sealed class Agendamento : AggregateRoot
 {
     public int Id { get; private set; }
-    public int Id_cliente { get; private set; }
+    public int ClienteId { get; private set; }
     public Usuario Cliente { get; private set; } = null!;
-    public StatusAgendamento StatusAgendamento { get; private set; }
-    public int Id_barbeiro { get; private set; }
+    public StatusAgendamento Status { get; private set; }
+    public int BarbeiroId { get; private set; }
     public Barbeiro Barbeiro { get; private set; } = null!;
-    public int Id_servico { get; private set; }
-    public Servicos Servicos { get; private set; } = null!;
+    public int ServicoId { get; private set; }
+    public Servico Servico { get; private set; } = null!;
     public DateTime Horario { get; private set; }
 
-    private Horarios() { }
+    private Agendamento() { }
 
-    public Horarios(int id_cliente, int id_barbeiro, int id_servico, DateTime horario)
+    public Agendamento(int clienteId, int barbeiroId, int servicoID, DateTime horario, DateTime agora)
     {
-        if (id_cliente <= 0)
+        if (clienteId <= 0)
             throw new DomainException("AGENDA_INVALID_CLIENT", "Cliente inválido.");
-        if (id_barbeiro <= 0)
+        if (barbeiroId <= 0)
             throw new DomainException("AGENDA_INVALID_BARBER", "Barbeiro inválido.");
-        if (id_servico <= 0)
+        if (servicoID <= 0)
             throw new DomainException("AGENDA_INVALID_SERVICE", "Serviço inválido.");
-        if (horario <= DateTime.Now)
+        if (horario <= agora)
             throw new DomainException("AGENDA_INVALID_DATE", "O agendamento deve ser realizado para um horário futuro.");
 
-        Id_cliente = id_cliente;
-        Id_barbeiro = id_barbeiro;
-        Id_servico = id_servico;
+        ClienteId = clienteId;
+        BarbeiroId = barbeiroId;
+        ServicoId = servicoID;
         Horario = DateTime.SpecifyKind(horario, DateTimeKind.Unspecified);
-        StatusAgendamento = StatusAgendamento.Agendado;
-
-        AddDomainEvent(new AgendamentoCriadoDomainEvent(
-            Id,
-            Id_cliente,
-            Id_barbeiro,
-            Id_servico,
-            Horario));
+        Status = StatusAgendamento.Agendado;
     }
 
-    public bool HorarioMenor(DateTimeOffset horarioC) => horarioC.LocalDateTime < DateTime.Now;
+
+    public void RegistrarCriacao()
+    {
+        if(Id <= 0)
+
+            throw new DomainException(
+                "AGENDA_INVALID_ID",
+                "Agendamento ainda não possui um identificador válido.");
+
+    AddDomainEvent(
+            new AgendamentoCriadoDomainEvent(
+                Id,
+                ClienteId,
+                BarbeiroId,
+                ServicoId,
+                Horario));
+    }
 
     public void Concluir()
     {
@@ -66,7 +75,7 @@ public sealed class Horarios : AggregateRoot
             "Somente um agendamento ativo pode ser cancelado.");
     }
 
-    public void Avaliado()
+    public void MarcarComoAvaliado()
     {
         AlterarStatus(
             StatusAgendamento.Avaliado,
@@ -81,11 +90,11 @@ public sealed class Horarios : AggregateRoot
         string mensagem,
         string codigo = "AGENDA_INVALID_STATUS")
     {
-        if (StatusAgendamento != statusEsperado)
+        if (Status != statusEsperado)
             throw new DomainException(codigo, mensagem);
 
-        var statusAnterior = StatusAgendamento;
-        StatusAgendamento = novoStatus;
+        var statusAnterior = Status;
+        Status = novoStatus;
 
         AddDomainEvent(new AgendamentoStatusAlteradoDomainEvent(
             Id,

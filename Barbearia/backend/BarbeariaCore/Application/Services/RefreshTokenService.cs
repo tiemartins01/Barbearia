@@ -46,10 +46,10 @@ namespace BarbeariaCore.Application.Services
                 throw InvalidRefresh();
             }
 
-            if (refresh.IsExpired(DateTime.UtcNow))
+            if (refresh.EstaExpirado(DateTime.UtcNow))
                 throw InvalidRefresh();
 
-            var usuario = await _loginRepository.ObterPorIdAsync(refresh.Id_usuario);
+            var usuario = await _loginRepository.ObterPorIdAsync(refresh.UsuarioId);
             if (usuario is null || !usuario.Ativado || !usuario.PodeLogar())
                 throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas");
 
@@ -69,8 +69,8 @@ namespace BarbeariaCore.Application.Services
             return sessions.Select(x => new DTOSessao
             {
                 Id = x.Id,
-                CriadoEm = x.CriadoEM,
-                ExpiraEm = x.ExpiraEM,
+                CriadoEm = x.CriadoEm,
+                ExpiraEm = x.ExpiraEm,
                 Revogado = x.Revogado,
                 Atual = !string.IsNullOrWhiteSpace(currentToken) && x.Token == currentToken
             }).ToList();

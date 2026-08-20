@@ -24,9 +24,9 @@ namespace BarbeariaCore.Infrastructure.Configuration
             e.HasOne(x => x.BarbeiroF).WithMany(x=> x.Avaliacoes).HasForeignKey(x => x.IdBarbeiro).OnDelete(DeleteBehavior.Restrict);
             e.HasOne<Usuario>().WithMany().HasForeignKey(x => x.IdCliente).OnDelete(DeleteBehavior.Restrict);
 
-            e.HasOne<Horarios>().WithOne().HasForeignKey<Avaliacoes>(x => x.IdHorario).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Agendamento>().WithOne().HasForeignKey<Avaliacoes>(x => x.IdHorario).OnDelete(DeleteBehavior.Restrict);
 
-            e.HasOne<Servicos>().WithMany().HasForeignKey(x => x.IdServico).OnDelete(DeleteBehavior.Restrict);
+            e.HasOne<Servico>().WithMany().HasForeignKey(x => x.IdServico).OnDelete(DeleteBehavior.Restrict);
 
             e.HasIndex(x => x.IdHorario).IsUnique().HasDatabaseName("ux_comentarios_horario");
             e.HasIndex(x => new { x.IdBarbeiro, x.Horario }).HasDatabaseName("ix_comentarios_barbeiro_horario");

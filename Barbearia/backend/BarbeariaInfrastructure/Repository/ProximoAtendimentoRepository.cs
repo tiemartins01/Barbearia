@@ -22,32 +22,32 @@ namespace BarbeariaInfrastructure.Repository
         public async Task<DTOProximoAgendamento?> InfoProximoAgendamento(int id)
         {
             var agora = DateTime.Now;
-            return await _context.Horarios
+            return await _context.Agendamentos
                 .AsNoTracking()
-                .Where(x => x.Id_cliente == id && x.Horario > agora && x.StatusAgendamento == StatusAgendamento.Agendado)
+                .Where(x => x.ClienteId == id && x.Horario > agora && x.Status == StatusAgendamento.Agendado)
                 .OrderBy(x => x.Horario)
                 .Select(x => new DTOProximoAgendamento
                 {
                     Horario = x.Horario.ToString("yyyy-MM-ddTHH:mm:ss"),
                     NomeBarbeiro = x.Barbeiro.Usuario.Nome,
-                    NomeServico = x.Servicos.Nome
+                    NomeServico = x.Servico.Nome
                 })
                 .FirstOrDefaultAsync();
         }
         // ADICIONANDO O NOVO AGENDAMENTO
-        public async Task MarcarAgendamento(Horarios horario)
+        public async Task MarcarAgendamento(Agendamento horario)
         {
-            await _context.Horarios.AddAsync(horario);
+            await _context.Agendamentos.AddAsync(horario);
         }
         // VERIFICA SE O BARBEIRO NAQUELE HORÁRIO ESTÁ DISPONÍVEL
         public Task<bool> DisponibilidadeHorario(DateTime horario, int id_barbeiro)
         {
             horario = DateTime.SpecifyKind(horario, DateTimeKind.Unspecified);
 
-            return _context.Horarios.AsNoTracking().AnyAsync(x =>
-                x.Id_barbeiro == id_barbeiro &&
+            return _context.Agendamentos.AsNoTracking().AnyAsync(x =>
+                x.BarbeiroId == id_barbeiro &&
                 x.Horario == horario &&
-                x.StatusAgendamento == StatusAgendamento.Agendado);
+                x.Status == StatusAgendamento.Agendado);
         }
         // ESSE E DO SERVIÇO, É FEITO PARA QUE UMA PESSOA TENTE DE OUTRA FORMA ADICIONAR UM HORÁRIO COM BARBEIRO OU SERVIÇO EXISTENTE
         // EXEMPLO COM O POSTMAN, TENTA ADICIONAR NÃO PELO APLICATIVO
@@ -60,9 +60,9 @@ namespace BarbeariaInfrastructure.Repository
             var inicio = data.ToDateTime(TimeOnly.MinValue);
             var fim = data.ToDateTime(TimeOnly.MaxValue);
 
-            return await _context.Horarios
+            return await _context.Agendamentos
                 .AsNoTracking()
-                .Where(x => x.Id_barbeiro == idBarbeiro
+                .Where(x => x.BarbeiroId == idBarbeiro
                          && x.Horario >= inicio
                          && x.Horario <= fim)
                 .OrderBy(x => x.Horario)

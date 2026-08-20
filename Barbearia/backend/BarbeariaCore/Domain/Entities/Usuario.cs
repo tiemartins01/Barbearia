@@ -4,6 +4,7 @@ using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Domain.Enum;
 using BarbeariaCore.Domain.Exceptions;
 
+
 namespace BarbeariaCore.Domain.Entities;
 
 /// <summary>
@@ -167,14 +168,14 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         AddDomainEvent(new SenhaAlteradaDomainEvent(Id));
     }
 
-    public void DefinirNovaSenha(Senha senha)
+    private void DefinirNovaSenha(Senha senha)
     {
         Senha = senha ?? throw new DomainException(
             "USER_INVALID_PASSWORD",
             "Senha é obrigatória.");
     }
 
-    public void LimparCodigo()
+    private void LimparCodigo()
     {
         Codigo = null;
         CodigoRecuperacaoExpiraEm = null;

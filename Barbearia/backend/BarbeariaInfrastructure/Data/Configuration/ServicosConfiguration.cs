@@ -4,10 +4,10 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BarbeariaCore.Infrastructure.Configuration
 {
-    public class ServicosConfiguration : IEntityTypeConfiguration<Servicos>
+    public class ServicosConfiguration : IEntityTypeConfiguration<Servico>
     {
 
-        public void Configure(EntityTypeBuilder<Servicos> e)
+        public void Configure(EntityTypeBuilder<Servico> e)
         {
             e.ToTable("servicos");
 

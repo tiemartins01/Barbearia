@@ -6,6 +6,7 @@ using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.Enum;
 using Microsoft.Extensions.Logging;
+using BarbeariaCore.Exceptions;
 
 namespace BarbeariaCore.Application.Services
 {
@@ -86,19 +87,19 @@ namespace BarbeariaCore.Application.Services
             if (existente.Email.EmailPessoa == email)
             {
                 _logger.LogWarning("Tentativa de cadastro com e-mail já existente");
-                throw new DomainException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado!");
+                throw new ConflictException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado!");
             }
 
             if (existente.CPF.Numero == cpf)
             {
                 _logger.LogWarning("Tentativa de cadastro com CPF já existente");
-                throw new DomainException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado!");
+                throw new ConflictException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado!");
             }
 
             if (existente.Phone.Telefone == telefone)
             {
                 _logger.LogWarning("Tentativa de cadastro com telefone já existente");
-                throw new DomainException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado!");
+                throw new ConflictException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado!");
             }
 
             if (existente.Login == login)
@@ -106,7 +107,7 @@ namespace BarbeariaCore.Application.Services
                 _logger.LogWarning(
                     "Tentativa de cadastro com login já existente: {Login}",
                     login);
-                throw new DomainException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado!");
+                throw new ConflictException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado!");
             }
         }
     }

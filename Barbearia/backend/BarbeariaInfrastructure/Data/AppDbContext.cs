@@ -5,8 +5,8 @@ using BarbeariaCore.Infrastructure.Data.Operational;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
-using System.Runtime.Intrinsics.X86;
 using System.Text.Json;
+using BarbeariaInfrastructure.Security;
 
 namespace BarbeariaCore.Infrastructure.Data;
 
@@ -65,8 +65,8 @@ public sealed class AppDbContext : DbContext
      * Normalmente, cada DbSet corresponde a uma tabela.
      */
 
-    public DbSet<Horarios> Horarios => Set<Horarios>();
-    public DbSet<Servicos> Servicos => Set<Servicos>();
+    public DbSet<Agendamento> Agendamentos => Set<Agendamento>();
+    public DbSet<Servico> Servicos => Set<Servico>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<Avaliacoes> Avaliacoes => Set<Avaliacoes>();

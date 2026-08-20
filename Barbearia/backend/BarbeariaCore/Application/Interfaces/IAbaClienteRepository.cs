@@ -9,9 +9,9 @@ namespace BarbeariaCore.Application.Interfaces
         Task<List<DTOHistorico>> Historico(int id, int page, int pageSize);
         Task<DTODadosPessoais> DadosPessoais(int id);
         Task<Usuario?> GetUsuarioAsync(int id);
-        Task<Horarios?> HorarioValidoAsync(int id);
+        Task<Agendamento?> HorarioValidoAsync(int id);
         Task RealizarAvaliacaoAsync(Avaliacoes avaliacao);
-        Task<Horarios?> BuscarHorarioParaAtualizarAsync(int id);
+        Task<Agendamento?> BuscarHorarioParaAtualizarAsync(int id);
 
     }
 }
