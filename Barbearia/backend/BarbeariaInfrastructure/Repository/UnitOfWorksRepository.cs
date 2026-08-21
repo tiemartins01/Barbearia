@@ -1,8 +1,9 @@
-using BarbeariaCore.Domain.Exceptions;
-using BarbeariaCore.Infrastructure.Data;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using BarbeariaCore.Application.Exceptions;
+
 
 namespace BarbeariaInfrastructure.Repository
 {
@@ -22,7 +23,7 @@ namespace BarbeariaInfrastructure.Repository
         public async Task BeginTransactionAsync()
         {
             if (_transaction != null)
-                throw new DomainException("Já existe uma transação ativa!");
+                throw new InvalidOperationException("Já existe uma transação ativa!");
 
             _transaction = await _context.Database.BeginTransactionAsync();
         }
@@ -55,14 +56,17 @@ namespace BarbeariaInfrastructure.Repository
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateException ex) 
-                when (_databaseError.IsUniqueViolation(
+            catch (DbUpdateException ex)
+            {
+                if (_databaseError.IsUniqueViolation(
                     ex,
                      "ux_horarios_barbeiro_horario_ativo"))
-            {
-                throw new DomainException(
-                    "APPOINTMENT_TIME_CONFLICT",
-                    "O barbeiro já possui um agendamento ativo neste horário.");
+                {
+                    throw new PersistenceConflictException(
+                        "APPOINTMENT_TIME_CONFLICT",
+                        "Conflito de unicidade ao persistir o agendamento.", ex);
+                }
+                throw;
             }
         }
 

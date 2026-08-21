@@ -73,6 +73,13 @@ public sealed class ErrorHandlingMiddleware
                 ex,
                 StatusCodes.Status409Conflict);
         }
+        catch (NotFoundException ex)
+        {
+            await HandleAppExceptionAsync(
+                context,
+                ex,
+                StatusCodes.Status404NotFound);
+        }
         catch (AppException ex) // Engloba o restante
         {
             // Segurança para alguma exceção de aplicação

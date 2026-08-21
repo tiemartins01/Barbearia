@@ -1,8 +1,6 @@
-﻿using BarbeariaCore.Domain.Exceptions;
-using BarbeariaCore.Application.Interfaces;
+﻿using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using BarbeariaCore.Security;
-
 
 namespace BarbeariaCore.Application.Services
 {
@@ -28,7 +26,12 @@ namespace BarbeariaCore.Application.Services
             var usuario = await _repository.BuscarUsuarioPorEmailAsync (email);
 
             if (usuario == null)
-                throw new DomainException("AUTH_INVALID_CREDENTIALS","Credenciais inválida!");
+            {
+                _logger.LogWarning(
+      "Tentativa de recuperação para e-mail inexistente.");
+
+                return;
+            }
 
             var codigo =  CodeGenerator.GerarCod();
             

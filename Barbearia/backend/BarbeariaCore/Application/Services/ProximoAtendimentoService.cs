@@ -1,9 +1,13 @@
-﻿using BarbeariaCore.Domain.Entities;
-using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Domain.Exceptions;
+﻿using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.Exceptions;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Exceptions;
 using Microsoft.Extensions.Logging;
-
+using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
+using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 namespace BarbeariaCore.Application.Services
 {
     public class ProximoAtendimentoService : IProximoAtendimentoService
@@ -30,7 +34,7 @@ namespace BarbeariaCore.Application.Services
                     "Tentativa de buscar próximo atendimento com id inválido. Id={IdUsuario}",
                     idUsuario);
 
-                throw new DomainException("INVALID_VALUE", "Dados inválidos.");
+                throw new ValidationException("USER_ID_INVALID","O identificador do usuário é inválido.");
             }
 
             var agendamento = await _repository.InfoProximoAgendamento(idUsuario);
@@ -41,7 +45,7 @@ namespace BarbeariaCore.Application.Services
                     "Usuário {IdUsuario} não possui agendamentos futuros.",
                     idUsuario);
 
-                throw new DomainException("NO_APPOINTMENT","Sem horários futuros!");
+                return null;
             }
 
             return agendamento;
@@ -53,23 +57,23 @@ namespace BarbeariaCore.Application.Services
             int idServico,
             DateTime horario)
         {
+            var agora = DateTime.Now;
+
             ValidarParametros(idUsuario, idBarbeiro, idServico);
 
-            if (horario <= DateTime.Now)
+            if (horario <= agora)
             {
                 _logger.LogWarning(
                     "Tentativa de agendar horário passado. Cliente={Cliente} Horario={Horario}",
                     idUsuario,
                     horario);
 
-                throw new DomainException("WRONG_VALUE","Apenas horários futuros.");
+                throw new ValidationException("APPOINTMENT_DATE_INVALID","O horário do agendamento deve estar no futuro.");
             }
 
             await ValidarBarbeiroAsync(idBarbeiro);
 
             await ValidarServicoAsync(idServico);
-
-            var agora = DateTime.UtcNow;
 
             await ValidarDisponibilidadeAsync(idBarbeiro, horario);            
 
@@ -92,6 +96,8 @@ namespace BarbeariaCore.Application.Services
 
                 await _uow.SaveChangesAsync();
 
+                await _uow.CommitTransactionAsync();
+
                 _logger.LogInformation(
                     "Agendamento criado. Cliente={Cliente} Barbeiro={Barbeiro} Serviço={Servico} Horario={Horario}",
                     idUsuario,
@@ -104,6 +110,22 @@ namespace BarbeariaCore.Application.Services
                     Sucesso = true,
                     Mensagem = "Horário agendado com sucesso!"
                 };
+            }
+            catch (PersistenceConflictException ex)
+            when (ex.Code == "APPOINTMENT_TIME_CONFLICT")
+            {
+                await _uow.RollbackAsync();
+
+                _logger.LogError(
+                    ex,
+                    "Erro ao gravar agendamento. Cliente={Cliente} Barbeiro={Barbeiro} Horario={Horario}",
+                    idUsuario,
+                    idBarbeiro,
+                    horario);
+
+                throw new ConflictException(
+            "APPOINTMENT_TIME_CONFLICT",
+            "O barbeiro já possui um agendamento ativo neste horário.");
             }
             catch (Exception ex)
             {
@@ -125,10 +147,13 @@ namespace BarbeariaCore.Application.Services
             DateOnly data)
         {
             if (idBarbeiro <= 0)
-                throw new DomainException("INVALID_VALUE", "Dados inválidos!");
+                throw new ValidationException("BARBER_ID_INVALID",
+    "O identificador do barbeiro é inválido.");
 
             if (data < DateOnly.FromDateTime(DateTime.Now))
-                throw new DomainException("WRONG_VALUE","Apenas horários futuros.");
+                throw new ValidationException(
+    "APPOINTMENT_DATE_INVALID",
+    "A data informada não pode estar no passado.");
 
             await ValidarBarbeiroAsync(idBarbeiro);
 
@@ -162,13 +187,13 @@ namespace BarbeariaCore.Application.Services
             int idServico)
         {
             if (idUsuario <= 0)
-                throw new DomainException("WRONG_VALUE", "Dados inválidos!");
+                throw new ValidationException("USER_ID_INVALID", "Dados inválidos!");
 
             if (idBarbeiro <= 0)
-                throw new DomainException("WRONG_VALUE", "Dados inválidos!");
+                throw new ValidationException("BARBER_ID_INVALID", "Dados inválidos!");
 
             if (idServico <= 0)
-                throw new DomainException("WRONG_VALUE", "Dados inválidos!");
+                throw new ValidationException("SERVICE_ID_INVALID", "Dados inválidos!");
         }
 
         private async Task ValidarBarbeiroAsync(int idBarbeiro)
@@ -182,7 +207,8 @@ namespace BarbeariaCore.Application.Services
                 "Barbeiro inexistente. Id={IdBarbeiro}",
                 idBarbeiro);
 
-            throw new DomainException("WRONG_VALUE", "Dados inválidos!");
+            throw new NotFoundException("BARBER_NOT_FOUND",
+    "Barbeiro não encontrado.");
         }
 
         private async Task ValidarServicoAsync(int idServico)
@@ -196,7 +222,7 @@ namespace BarbeariaCore.Application.Services
                 "Serviço inexistente. Id={IdServico}",
                 idServico);
 
-            throw new DomainException("WRONG_VALUE","Dados inválidos!");
+            throw new NotFoundException("SERVICE_NOT_FOUND", "Serviço não encontrado.");
         }
 
         private async Task ValidarDisponibilidadeAsync(
@@ -215,7 +241,7 @@ namespace BarbeariaCore.Application.Services
                 idBarbeiro,
                 horario);
 
-            throw new DomainException("WRONG_VALUE", "Agendamento já selecionado!");
+            throw new ConflictException("APPOINTMENT_TIME_CONFLICT", "O barbeiro já possui um agendamento ativo neste horário.");
         }
     }
 }

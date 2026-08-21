@@ -1,7 +1,10 @@
 using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
-
+using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
+using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
+using BarbeariaCore.Exceptions;
 namespace BarbeariaCore.Application.Services
 {
     public class RefreshTokenService : IRefreshTokenService
@@ -23,7 +26,8 @@ namespace BarbeariaCore.Application.Services
         {
             var token = await _repository.GetAsync(refreshToken);
             if (token is null || token.Revogado)
-                throw new DomainException("WRONG_VALUE", "Dados inválidos!");
+                throw new AuthenticationException("INVALID_REFRESH",
+    "Credenciais inválidas.");
 
             await _repository.RevokeAsync(refreshToken, null, "LOGOUT");
             await _uow.SaveChangesAsync();
@@ -51,7 +55,7 @@ namespace BarbeariaCore.Application.Services
 
             var usuario = await _loginRepository.ObterPorIdAsync(refresh.UsuarioId);
             if (usuario is null || !usuario.Ativado || !usuario.PodeLogar())
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida");
 
             var accessToken = _token.GenerateToken(usuario);
             var novoRefresh = _token.GenerateRefreshToken();
@@ -85,12 +89,12 @@ namespace BarbeariaCore.Application.Services
         public async Task RevogarSessaoAsync(int userId, int sessionId)
         {
             if (!await _repository.RevokeByIdAsync(sessionId, userId))
-                throw new DomainException("SESSION_NOT_FOUND", "Sessão não encontrada.");
+                throw new NotFoundException("SESSION_NOT_FOUND", "Sessão não encontrada.");
 
             await _uow.SaveChangesAsync();
         }
 
-        private static DomainException InvalidRefresh() =>
+        private static AuthenticationException InvalidRefresh() =>
             new("INVALID_REFRESH", "Credenciais inválidas");
     }
 }

@@ -1,10 +1,10 @@
 ﻿using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Domain.Policies;
-
+using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 namespace BarbeariaCore.Application.Services
 {
     public sealed class TrocaSenhaService : ITrocaSenhaService
@@ -28,7 +28,7 @@ namespace BarbeariaCore.Application.Services
 
             if (usuario is null || !usuario.Ativado)
             {
-                throw new DomainException(
+                throw new AuthenticationException(
                     "PASSWORD_RESET_INVALID_DATA",
                     "Dados inválidos!");
             }
@@ -40,14 +40,14 @@ namespace BarbeariaCore.Application.Services
                     senharepetida,
                     StringComparison.Ordinal))
             {
-                throw new DomainException(
+                throw new ValidationException(
                     "PASSWORD_RESET_PASSWORD_MISMATCH",
                     "Dados inválidos!");
             }
 
             if (!usuario.CodigoIsValido())
             {
-                throw new DomainException(
+                throw new AuthenticationException(
                     "PASSWORD_RESET_CODE_EXPIRED",
                     "Código expirado! Solicite um novo código!");
             }
@@ -56,9 +56,9 @@ namespace BarbeariaCore.Application.Services
             {
                 await RegistrarFalhaAsync(usuario);
 
-                throw new DomainException(
+                throw new AuthenticationException(
                     "PASSWORD_RESET_INVALID_CODE",
-                    "Dados inválidos!");
+                    "Código de recuperação inválido.");
             }
 
             var senhaHash =

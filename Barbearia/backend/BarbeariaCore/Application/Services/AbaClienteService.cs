@@ -2,7 +2,6 @@
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
-using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Exceptions;
@@ -88,8 +87,8 @@ namespace BarbeariaCore.Application.Services
         {
             var usuario = await _repository.GetUsuarioAsync(dados.Id);
 
-            if (usuario == null)
-                throw new DomainException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+            if (usuario is null)
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
 
             usuario.AlterarDados(dados.Nome,
             new Email(dados.Email),
@@ -101,8 +100,8 @@ namespace BarbeariaCore.Application.Services
             {
                 PoliticaSenha.Validar(dados.NovaSenha);
 
-                if (!_passwordHash.Verify(dados.SenhaAntiga, usuario.Senha.Hash) || string.IsNullOrEmpty(dados.SenhaAntiga))
-                    throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                if (string.IsNullOrEmpty(dados.SenhaAntiga) || !_passwordHash.Verify(dados.SenhaAntiga, usuario.Senha.Hash))
+                    throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
 
                 var senhaHash = _passwordHash.Hash(dados.NovaSenha);
 
@@ -132,7 +131,7 @@ namespace BarbeariaCore.Application.Services
             if (!nova_avaliacao.HorarioMenor(avaliacao.Horario))
             {
                 _logger.LogWarning("{} tentou avaliar antes de concluir o horário", id_cliente);
-                throw new ValidationException("ACTION_DENIED", "Dados inválidos!");
+                throw new ConflictException("EVALUATION_NOT_ALLOWED", "A avaliação não pode ser realizada neste momento.");
             }
 
             await _repository.RealizarAvaliacaoAsync(nova_avaliacao);
@@ -153,36 +152,31 @@ namespace BarbeariaCore.Application.Services
             if (horario == null)
             {
                 _logger.LogWarning("Informações inexistente!");
-                throw new ValidationException("ACTION_DENIED", "Dados inválidos!");
+                throw new NotFoundException("APPOINTMENT_NOT_FOUND", "Agendamento não encontrado.");
             }
 
             if (horario.Status != StatusAgendamento.Concluido)
             {
                 _logger.LogWarning("Status diferente de concluido no id {}", avaliacao.Id);
-                throw new ConflictException("DIFFERENT_STATUS", "Status indisponível!");
+                throw new ConflictException("APPOINTMENT_NOT_COMPLETED", "Status indisponível!");
             }
 
             if (horario.ClienteId != id_cliente)
             {
                 _logger.LogWarning("Id do cliente não é o mesmo de logado! Id: {}", id_cliente);
-                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
+                throw new ForbiddenException("RESOURCE_ACCESS_DENIED","Você não possui acesso a este agendamento.");
             }
 
             if (horario.BarbeiroId != avaliacao.Id_barbeiro)
             {
                 _logger.LogWarning("Id do barbeiro não é o mesmo do horário! Id: {}", avaliacao.Id_barbeiro);
-                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
+                throw new ValidationException("APPOINTMENT_BARBER_MISMATCH","O barbeiro informado não corresponde ao agendamento.");
             }
 
             if (horario.ServicoId != avaliacao.Id_servico)
             {
                 _logger.LogWarning("Id do serviço não é o mesmo do horário! Id: {}", avaliacao.Id_servico);
-                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
-            }
-            if (horario.Id != avaliacao.Id_horario)
-            {
-                _logger.LogWarning("Id do horário não é o mesmo do banco de dados! Id: {}", avaliacao.Id_horario);
-                throw new ValidationException("AUTH_INVALID_CREDENTIALS", "Informação inválida!");
+                throw new ValidationException("APPOINTMENT_SERVICE_MISMATCH","O serviço informado não corresponde ao agendamento.");
             }
         }
     }

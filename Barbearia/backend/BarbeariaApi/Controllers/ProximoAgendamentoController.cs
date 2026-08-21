@@ -3,11 +3,11 @@ using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using BarbeariaCore.Domain.Exceptions;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
 namespace BarbeariaApi.Controllers
 {
@@ -48,7 +48,7 @@ namespace BarbeariaApi.Controllers
             CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(idempotencyKey))
-                throw new DomainException(
+                throw new ValidationException(
                     "IDEMPOTENCY_KEY_REQUIRED",
                     "O header Idempotency-Key é obrigatório para criar um agendamento.");
 

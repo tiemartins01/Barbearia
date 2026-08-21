@@ -7,7 +7,7 @@ namespace BarbeariaCore.Domain.Policies
 
         public static void Validar(string senha)
         {
-            if (string.IsNullOrEmpty(senha))
+            if (string.IsNullOrWhiteSpace(senha))
             {
                 throw new DomainException(
                     "USER_INVALID_PASSWORD",

@@ -5,8 +5,10 @@ using BarbeariaCore.Infrastructure.Data;
 using BarbeariaCore.Infrastructure.Data.Operational;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
+using BarbeariaCore.Exceptions;
 
-namespace BarbeariaCore.Application.Services;
+namespace BarbeariaInfrastructure.Services;
 
 public sealed class DatabaseIdempotencyService : IIdempotencyService
 {
@@ -29,7 +31,7 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
         CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(key) || key.Length > 128)
-            throw new DomainException("IDEMPOTENCY_KEY_INVALID", "Informe um Idempotency-Key válido com até 128 caracteres.");
+            throw new ValidationException("IDEMPOTENCY_KEY_INVALID", "Informe um Idempotency-Key válido com até 128 caracteres.");
 
         var normalizedKey = key.Trim();
         var existing = await FindAsync(normalizedKey, userId, operation, cancellationToken);
@@ -48,7 +50,7 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
         {
             _context.Entry(record).State = EntityState.Detached;
             existing = await FindAsync(normalizedKey, userId, operation, cancellationToken)
-                ?? throw new DomainException("IDEMPOTENCY_CONFLICT", "A operação idempotente já está em processamento.");
+                ?? throw new ConflictException("IDEMPOTENCY_CONFLICT", "A operação idempotente já está em processamento.");
             return Replay<T>(existing, requestHash);
         }
 
@@ -78,17 +80,20 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
 
     private static IdempotencyExecutionResult<T> Replay<T>(IdempotencyRecord record, string requestHash)
     {
-        if (!string.Equals(record.RequestHash, requestHash, StringComparison.Ordinal))
-            throw new DomainException("IDEMPOTENCY_REQUEST_CONFLICT", "A mesma chave foi reutilizada com dados diferentes.");
 
-        if (record.ExpiresAtUtc <= DateTime.UtcNow)
-            throw new DomainException("IDEMPOTENCY_KEY_EXPIRED", "A chave idempotente expirou. Gere uma nova chave.");
+        var agora = DateTime.Now;
+
+        if (!string.Equals(record.RequestHash, requestHash, StringComparison.Ordinal))
+            throw new ConflictException("IDEMPOTENCY_REQUEST_CONFLICT", "A mesma chave foi reutilizada com dados diferentes.");
+
+        if (record.ExpiresAtUtc <= agora)
+            throw new ConflictException("IDEMPOTENCY_KEY_EXPIRED", "A chave idempotente expirou. Gere uma nova chave.");
 
         if (record.Status != "Completed" || string.IsNullOrWhiteSpace(record.ResponseBody))
-            throw new DomainException("IDEMPOTENCY_IN_PROGRESS", "A operação com esta chave ainda está em processamento.");
+            throw new ConflictException("IDEMPOTENCY_IN_PROGRESS", "A operação com esta chave ainda está em processamento.");
 
         var value = JsonSerializer.Deserialize<T>(record.ResponseBody)
-            ?? throw new DomainException("IDEMPOTENCY_RESPONSE_INVALID", "Não foi possível recuperar a resposta idempotente.");
+            ?? throw new ValidationException("IDEMPOTENCY_RESPONSE_INVALID", "Não foi possível recuperar a resposta idempotente.");
 
         return new IdempotencyExecutionResult<T>(value, true);
     }

@@ -1,8 +1,10 @@
 ﻿using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
+using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
+using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
+using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
 namespace BarbeariaCore.Application.Services
 {
@@ -36,7 +38,7 @@ namespace BarbeariaCore.Application.Services
             if (usuario == null)
             {
                 _logger.LogWarning("Tentativa de acessar com um usuário inexistente: {login}", login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
             }
                
             ValidarUsuario(usuario, login);
@@ -44,7 +46,7 @@ namespace BarbeariaCore.Application.Services
             if (!_passwordHash.Verify(senha, usuario.Senha.Hash)) 
             {
                 await RegistrarFalha(usuario, login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
             }
 
             usuario.ResetarTentativasLogin();
@@ -63,13 +65,13 @@ namespace BarbeariaCore.Application.Services
             if (!usuario.Ativado)
             {
                 _logger.LogWarning("Tentativa de logar com um usuário inátivo {login}",login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
             }
 
             if (!usuario.PodeLogar())
             {
                 _logger.LogWarning("Tentativa de logar com um usuário bloqueado {login}", login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credenciais inválidas!");
+                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
             }
         }
 
