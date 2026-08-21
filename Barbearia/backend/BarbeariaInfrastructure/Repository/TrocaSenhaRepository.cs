@@ -15,7 +15,7 @@ namespace BarbeariaInfrastructure.Repository
             _context = context;
         }
 
-        public Task<Usuario?> PegaInformacaoUsuario(string email) => _context.Usuarios.FirstOrDefaultAsync(x => x.Email.EmailPessoa == email);
+        public Task<Usuario?> PegaInformacaoUsuario(string email) => _context.Usuarios.FirstOrDefaultAsync(x => x.Email.Valor == email);
 
         public async Task AtualizaUsuario(Usuario usuario)
         {

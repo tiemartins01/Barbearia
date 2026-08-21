@@ -33,14 +33,14 @@ namespace BarbeariaCore.Application.Services
 
             // DADOS DEVEM SER VERIFICADOS NO VALUE OBJECTS
             var emailNormalizado = new Email(email);
-            var telefoneNormalizado = new Phone(telefone);
+            var telefoneNormalizado = new Telefone(telefone);
             var cpfNormalizado = new Cpf(cpf);
 
             PoliticaSenha.Validar(senha);
             var hash = _hash.Hash(senha);
             var senhaDominio = Senha.DeHash(hash);
 
-            await ValidarDuplicidadeAsync(emailNormalizado.EmailPessoa, cpfNormalizado.Numero, telefoneNormalizado.Telefone, login);
+            await ValidarDuplicidadeAsync(emailNormalizado.Valor, cpfNormalizado.Valor, telefoneNormalizado.Valor, login);
 
             var novo_usuario = new Usuario
             (
@@ -84,19 +84,19 @@ namespace BarbeariaCore.Application.Services
             if (existente is null)
                 return;
 
-            if (existente.Email.EmailPessoa == email)
+            if (existente.Email.Valor == email)
             {
                 _logger.LogWarning("Tentativa de cadastro com e-mail já existente");
                 throw new ConflictException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado!");
             }
 
-            if (existente.CPF.Numero == cpf)
+            if (existente.CPF.Valor == cpf)
             {
                 _logger.LogWarning("Tentativa de cadastro com CPF já existente");
                 throw new ConflictException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado!");
             }
 
-            if (existente.Phone.Telefone == telefone)
+            if (existente.Phone.Valor == telefone)
             {
                 _logger.LogWarning("Tentativa de cadastro com telefone já existente");
                 throw new ConflictException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado!");

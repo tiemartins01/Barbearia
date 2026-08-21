@@ -8,7 +8,7 @@ namespace BarbeariaCore.Domain.Entities
         public int UsuarioId { get; private set; }
         public string Especialidade { get; private set; } = string.Empty;
         public Usuario Usuario { get; private set; } = null!; 
-        public ICollection<Avaliacoes> Avaliacoes { get; private set; } = new List<Avaliacoes>();
+        public ICollection<Avaliacao> Avaliacoes { get; private set; } = new List<Avaliacao>();
 
         private Barbeiro() { }
 

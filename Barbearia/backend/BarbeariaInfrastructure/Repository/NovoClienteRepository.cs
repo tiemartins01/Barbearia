@@ -19,9 +19,9 @@ namespace BarbeariaInfrastructure.Repository
         // Verifica se existe alguma informação já criada no banco de dados e faz com que não seja possível adicionar novamente
         public Task<Usuario?> VerificarDuplicidadeAsync(string email, string cpf, string telefone,string login) =>  
             _context.Usuarios.AsNoTracking().FirstOrDefaultAsync(x =>
-                x.CPF.Numero == cpf ||
-                x.Email.EmailPessoa == email ||
-                x.Phone.Telefone == telefone ||
+                x.CPF.Valor == cpf ||
+                x.Email.Valor == email ||
+                x.Phone.Valor == telefone ||
                 x.Login == login); // verificar sobre ter ativado para procurar menos
         // ADICIONANDO NOVO CLIENTE
         public async Task CadastraNovoClienteAsync(Usuario usuario)

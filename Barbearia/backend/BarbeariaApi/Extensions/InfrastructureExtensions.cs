@@ -4,6 +4,7 @@ using BarbeariaCore.Application.Services;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaInfrastructure.Repository;
 using BarbeariaInfrastructure.Security;
+using BarbeariaInfrastructure.Services;
 
 namespace BarbeariaApi.Extensions
 {

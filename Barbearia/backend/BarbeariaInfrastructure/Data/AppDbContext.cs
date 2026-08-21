@@ -69,7 +69,7 @@ public sealed class AppDbContext : DbContext
     public DbSet<Servico> Servicos => Set<Servico>();
     public DbSet<Usuario> Usuarios => Set<Usuario>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
-    public DbSet<Avaliacoes> Avaliacoes => Set<Avaliacoes>();
+    public DbSet<Avaliacao> Avaliacoes => Set<Avaliacao>();
     public DbSet<Barbeiro> Barbeiros => Set<Barbeiro>();
     // Eles impedem que uma mesma operação seja executada duas vezes usando a mesma chave.
     public DbSet<IdempotencyRecord> IdempotencyRecords =>

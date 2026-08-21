@@ -3,14 +3,14 @@ using BarbeariaCore.Domain.Exceptions;
 
 namespace BarbeariaCore.Domain.ValueObjects
 {
-    public sealed class Email
+    public sealed record class Email
     {
-        public string EmailPessoa { get; private set; } = string.Empty;
+        public string Valor { get; init; } = string.Empty;
 
         private Email () { } // Entity Framework
-        public Email(string emailPessoa) 
+        public Email(string valor) 
         {
-            var emailNormalizado = (emailPessoa ?? string.Empty).Trim().ToLowerInvariant();
+            var emailNormalizado = (valor ?? string.Empty).Trim().ToLowerInvariant();
 
             try
             {
@@ -23,9 +23,9 @@ namespace BarbeariaCore.Domain.ValueObjects
                 throw new DomainException("USER_INVALID_EMAIL", "E-mail inválido.");
             }
 
-            EmailPessoa = emailNormalizado;
+            Valor = emailNormalizado;
         }
 
-        public override string ToString() => EmailPessoa;
+        public override string ToString() => Valor;
     }
 }

@@ -92,7 +92,7 @@ namespace BarbeariaCore.Application.Services
 
             usuario.AlterarDados(dados.Nome,
             new Email(dados.Email),
-            new Phone(dados.Telefone),
+            new Telefone(dados.Telefone),
             new Cpf(dados.Cpf));
 
 
@@ -117,7 +117,7 @@ namespace BarbeariaCore.Application.Services
         {
             await InformacoesFora(avaliacao, id_cliente);
 
-            var nova_avaliacao = new Avaliacoes
+            var nova_avaliacao = new Avaliacao
                 (
                     avaliacao.Id_barbeiro,
                     id_cliente,
@@ -128,11 +128,11 @@ namespace BarbeariaCore.Application.Services
                     avaliacao.Id_servico
                 );
 
-            if (!nova_avaliacao.HorarioMenor(avaliacao.Horario))
-            {
-                _logger.LogWarning("{} tentou avaliar antes de concluir o horário", id_cliente);
-                throw new ConflictException("EVALUATION_NOT_ALLOWED", "A avaliação não pode ser realizada neste momento.");
-            }
+            //if (!nova_avaliacao.HorarioMenor(avaliacao.Horario))
+            //{
+            //    _logger.LogWarning("{} tentou avaliar antes de concluir o horário", id_cliente);
+            //    throw new ConflictException("EVALUATION_NOT_ALLOWED", "A avaliação não pode ser realizada neste momento.");
+            //}
 
             await _repository.RealizarAvaliacaoAsync(nova_avaliacao);
             var horarioParaAtualizar = await _repository.BuscarHorarioParaAtualizarAsync(avaliacao.Id_horario);

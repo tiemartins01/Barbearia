@@ -50,7 +50,7 @@ namespace BarbeariaCore.Application.Services
 
                 <p style="font-size:8px">Caso não tenha sido você que tenha realizado a troca, favor descartar o e-mail</p>
                 """;  
-            await _enviar.EnviarEmailAsync(usuario.Email.EmailPessoa, "Troca de senha",mensagem);
+            await _enviar.EnviarEmailAsync(usuario.Email.Valor, "Troca de senha",mensagem);
             _logger.LogInformation("Código enviado com sucesso para o e-mail {email}", email);
             _logger.LogWarning("Tentativa de recuperação para e-mail inexistente.");
         }

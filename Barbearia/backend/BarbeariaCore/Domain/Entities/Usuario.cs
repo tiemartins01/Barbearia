@@ -16,7 +16,7 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
     public int Id { get; private set; }
     public string Nome { get; private set; } = string.Empty;
     public Email Email { get; private set; } = null!;
-    public Phone Phone { get; private set; } = null!;
+    public Telefone Phone { get; private set; } = null!;
     public Cpf CPF { get; private set; } = null!;
     public string Login { get; private set; } = string.Empty;
     public Senha Senha { get; private set; } = null!;
@@ -36,7 +36,7 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
     public Usuario(
         string nome,
         Email email,
-        Phone phone,
+        Telefone phone,
         Cpf cpf,
         string login,
         Senha senha,
@@ -55,7 +55,7 @@ public sealed class Usuario : AggregateRoot // Acrescenta principalmente a capac
         Foto = string.IsNullOrWhiteSpace(foto) ? null : foto.Trim();
     }
 
-    public void AlterarDados(string nome, Email email, Phone telefone, Cpf cpf)
+    public void AlterarDados(string nome, Email email, Telefone telefone, Cpf cpf)
     {
         Nome = ValidarNome(nome);
         Email = email ?? throw new DomainException("USER_INVALID_EMAIL", "E-mail é obrigatório.");

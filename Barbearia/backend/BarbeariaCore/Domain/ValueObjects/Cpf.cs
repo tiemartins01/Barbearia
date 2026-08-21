@@ -1,16 +1,16 @@
 ﻿using BarbeariaCore.Domain.Exceptions;
 namespace BarbeariaCore.Domain.ValueObjects
 {
-    public sealed class Cpf // sealed para não ter herança
+    public sealed record class Cpf // sealed para não ter herança
     {
-        public string Numero { get; private set; } = string.Empty; // alteração só nessa classe
+        public string Valor { get; private set; } = string.Empty; // alteração só nessa classe
         private Cpf() { } // Entity Framework
 
         public Cpf(string numero) 
         {
-           Numero = ApenasDigitos(numero);
+           Valor = ApenasDigitos(numero);
 
-            if (!IsValid(Numero))
+            if (!IsValid(Valor))
                 throw new DomainException("USER_INVALID_CPF", "CPF inválido");           
         }
 
@@ -18,7 +18,7 @@ namespace BarbeariaCore.Domain.ValueObjects
         private static string ApenasDigitos(string? valor) =>
             new((valor ?? string.Empty).Where(char.IsDigit).ToArray());
 
-        private bool IsValid(string cpf)
+        private static bool IsValid(string cpf)
         {
             if (cpf.Length != 11 || cpf.All(digito => digito == cpf[0]))
                 return false;
@@ -40,6 +40,6 @@ namespace BarbeariaCore.Domain.ValueObjects
             return cpf[9] - '0' == digito1 && cpf[10] - '0' == digito2;
         }
 
-        public override string ToString() => Numero;
+        public override string ToString() => Valor;
     }
 }

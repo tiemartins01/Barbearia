@@ -37,20 +37,20 @@ namespace BarbeariaInfrastructure.Configuration
 
             e.OwnsOne(x => x.Email, email =>
             {
-                email.Property(p => p.EmailPessoa).HasColumnName("email").IsRequired();
-                email.HasIndex(p => p.EmailPessoa).IsUnique().HasDatabaseName("ux_usuario_email");
+                email.Property(p => p.Valor).HasColumnName("email").IsRequired();
+                email.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_email");
             });
 
             e.OwnsOne(x => x.Phone, phone =>
             {
-                phone.Property(p => p.Telefone).HasColumnName("numero").IsRequired();
-                phone.HasIndex(p => p.Telefone).IsUnique().HasDatabaseName("ux_usuario_telefone");
+                phone.Property(p => p.Valor).HasColumnName("numero").IsRequired();
+                phone.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_telefone");
             });
 
             e.OwnsOne(x => x.CPF, cpf =>
             {
-                cpf.Property(p => p.Numero).HasColumnName("cpf").IsRequired();
-                cpf.HasIndex(p => p.Numero).IsUnique().HasDatabaseName("ux_usuario_cpf");
+                cpf.Property(p => p.Valor).HasColumnName("cpf").IsRequired();
+                cpf.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_cpf");
             });
 
             e.HasIndex(x => x.Login).IsUnique().HasDatabaseName("ux_usuario_login"); ;

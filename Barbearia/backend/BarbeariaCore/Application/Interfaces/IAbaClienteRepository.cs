@@ -10,7 +10,7 @@ namespace BarbeariaCore.Application.Interfaces
         Task<DTODadosPessoais> DadosPessoais(int id);
         Task<Usuario?> GetUsuarioAsync(int id);
         Task<Agendamento?> HorarioValidoAsync(int id);
-        Task RealizarAvaliacaoAsync(Avaliacoes avaliacao);
+        Task RealizarAvaliacaoAsync(Avaliacao avaliacao);
         Task<Agendamento?> BuscarHorarioParaAtualizarAsync(int id);
 
     }

@@ -35,11 +35,11 @@ namespace BarbeariaInfrastructure.Repository
                     b.Especialidade,
 
                     NotaMedia = _context.Avaliacoes
-                        .Where(a => a.IdBarbeiro == b.Id)
+                        .Where(a => a.BarbeiroId == b.Id)
                         .Average(a => (double?)a.Nota) ?? 0,
 
                     QuantidadeAvaliacoes = _context.Avaliacoes
-                        .Count(a => a.IdBarbeiro == b.Id)
+                        .Count(a => a.BarbeiroId == b.Id)
                 })
                 .ToListAsync();
 
@@ -90,8 +90,8 @@ namespace BarbeariaInfrastructure.Repository
                 x.Nome,
                 Iniciais = GerarIniciais(x.Nome),
                 Email = x.Email.ToString(),
-                Telefone = x.Phone.Telefone,
-                Cpf = x.CPF.Numero,
+                Telefone = x.Phone.Valor,
+                Cpf = x.CPF.Valor,
                 QtdCortes = _context.Agendamentos.Count(a =>
                     a.ClienteId == x.Id &&
                     (a.Status == StatusAgendamento.Concluido ||
@@ -115,7 +115,7 @@ namespace BarbeariaInfrastructure.Repository
         }
         public  Task<Agendamento?> BuscarHorarioParaAtualizarAsync(int id) => _context.Agendamentos.FirstOrDefaultAsync(x => x.Id == id && StatusAgendamento.Avaliado != x.Status);
         public  Task<Agendamento?>HorarioValidoAsync(int id) =>  _context.Agendamentos.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id );
-        public async Task RealizarAvaliacaoAsync(Avaliacoes avaliacao)
+        public async Task RealizarAvaliacaoAsync(Avaliacao avaliacao)
         {
             await _context.Avaliacoes.AddAsync(avaliacao);
         }

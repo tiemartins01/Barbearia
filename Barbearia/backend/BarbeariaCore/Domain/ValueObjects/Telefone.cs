@@ -2,22 +2,22 @@
 
 namespace BarbeariaCore.Domain.ValueObjects
 {
-    public sealed class Phone
+    public sealed record class Telefone
     {
-        public string Telefone { get; private set; }
+        public string Valor { get; private set; }
 
-        private Phone() { } // ENTITY FRAMEWORK
-        public Phone(string telefone) 
+        private Telefone() { } // ENTITY FRAMEWORK
+        public Telefone(string telefone) 
         {
             var numeros = new string((telefone ?? string.Empty).Where(char.IsDigit).ToArray());
 
             if (numeros.Length != 11)
                 throw new DomainException("USER_INVALID_PHONE", "Telefone inválido!");
 
-            Telefone = numeros;
+            Valor = numeros;
         }
 
-        public override string ToString() => Telefone;
+        public override string ToString() => Valor;
 
     }
 }
