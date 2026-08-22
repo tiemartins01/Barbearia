@@ -65,7 +65,7 @@ namespace BarbeariaInfrastructure.Repository
         // HISTÓRICO DE SERVIÇOS DO CLIENTE, SENDO APENAS OS SERVIÇOS QUE FORAM CONCLUI
         public  Task<List<DTOHistorico>> Historico(int id, int page, int pageSize) =>
             _context.Agendamentos.AsNoTracking().Where(x => x.ClienteId == id && (x.Status == StatusAgendamento.Avaliado || x.Status == StatusAgendamento.Concluido))
-                .OrderByDescending(x => x.Horario)
+                .OrderByDescending(x => x.DataAgendamento)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .Select(x => new DTOHistorico
@@ -74,7 +74,7 @@ namespace BarbeariaInfrastructure.Repository
                     NomeServico = x.Servico.Nome,
                     NomeBarbeiro = x.Barbeiro.Usuario.Nome,
                     ValorServico = x.Servico.Preco,
-                    Data = x.Horario,
+                    Data = x.DataAgendamento,
                     PodeAvaliar = x.Status == StatusAgendamento.Concluido
                 }).ToListAsync();
         

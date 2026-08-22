@@ -1,62 +1,131 @@
 using BarbeariaCore.Domain.Common;
-using BarbeariaCore.Domain.Events;
+using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Events;
 using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Policies;
 
 namespace BarbeariaCore.Domain.Entities;
 
-/// <summary>
-/// Aggregate Root do ciclo de vida de um agendamento.
-/// Somente esta entidade pode alterar o status do atendimento.
-/// </summary>
 public sealed class Agendamento : AggregateRoot
 {
     public int Id { get; private set; }
+
     public int ClienteId { get; private set; }
-    public Usuario Cliente { get; private set; } = null!;
-    public StatusAgendamento Status { get; private set; }
+
+    public Usuario Cliente { get; private set; } =
+        null!;
+
     public int BarbeiroId { get; private set; }
-    public Barbeiro Barbeiro { get; private set; } = null!;
+
+    public Barbeiro Barbeiro { get; private set; } =
+        null!;
+
     public int ServicoId { get; private set; }
-    public Servico Servico { get; private set; } = null!;
-    public DateTime Horario { get; private set; }
+
+    public Servico Servico { get; private set; } =
+        null!;
+
+    public int DuracaoMinutos { get; private set; }
+
+    public DateTime DataAgendamento
+    {
+        get;
+        private set;
+    }
+
+    public DateTime HorarioFim
+    {
+        get;
+        private set;
+    }
+
+    public StatusAgendamento Status
+    {
+        get;
+        private set;
+    }
 
     private Agendamento() { }
 
-    public Agendamento(int clienteId, int barbeiroId, int servicoID, DateTime horario, DateTime agora)
+    public Agendamento(
+        int clienteId,
+        int barbeiroId,
+        int servicoId,
+        int duracaoMinutos,
+        DateTime dataAgendamento,
+        DateTime agora)
     {
         if (clienteId <= 0)
-            throw new DomainException("AGENDA_INVALID_CLIENT", "Cliente inválido.");
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_CLIENT",
+                "Cliente inválido.");
+        }
+
         if (barbeiroId <= 0)
-            throw new DomainException("AGENDA_INVALID_BARBER", "Barbeiro inválido.");
-        if (servicoID <= 0)
-            throw new DomainException("AGENDA_INVALID_SERVICE", "Serviço inválido.");
-        if (horario <= agora)
-            throw new DomainException("AGENDA_INVALID_DATE", "O agendamento deve ser realizado para um horário futuro.");
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_BARBER",
+                "Barbeiro inválido.");
+        }
+
+        if (servicoId <= 0)
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_SERVICE",
+                "Serviço inválido.");
+        }
+
+        PoliticaAgenda.ValidarDuracao(
+            duracaoMinutos);
+
+        PoliticaAgenda.ValidarHorarioFuturo(
+            dataAgendamento,
+            agora);
+
+        PoliticaAgenda.ValidarHorarioNaGrade(
+            dataAgendamento);
+
+        PoliticaAgenda
+            .ValidarTerminoDentroDoExpediente(
+                dataAgendamento,
+                duracaoMinutos);
 
         ClienteId = clienteId;
         BarbeiroId = barbeiroId;
-        ServicoId = servicoID;
-        Horario = DateTime.SpecifyKind(horario, DateTimeKind.Unspecified);
-        Status = StatusAgendamento.Agendado;
-    }
+        ServicoId = servicoId;
+        DuracaoMinutos = duracaoMinutos;
 
+        DataAgendamento =
+            DateTime.SpecifyKind(
+                dataAgendamento,
+                DateTimeKind.Unspecified);
+
+        HorarioFim =
+            DataAgendamento.AddMinutes(
+                DuracaoMinutos);
+
+        Status =
+            StatusAgendamento.Agendado;
+    }
 
     public void RegistrarCriacao()
     {
-        if(Id <= 0)
-
+        if (Id <= 0)
+        {
             throw new DomainException(
-                "AGENDA_INVALID_ID",
+                "APPOINTMENT_INVALID_ID",
                 "Agendamento ainda não possui um identificador válido.");
+        }
 
-    AddDomainEvent(
+        AddDomainEvent(
             new AgendamentoCriadoDomainEvent(
                 Id,
                 ClienteId,
                 BarbeiroId,
                 ServicoId,
-                Horario));
+                DataAgendamento));
     }
 
     public void Concluir()
@@ -88,17 +157,24 @@ public sealed class Agendamento : AggregateRoot
         StatusAgendamento novoStatus,
         StatusAgendamento statusEsperado,
         string mensagem,
-        string codigo = "AGENDA_INVALID_STATUS")
+        string codigo =
+            "APPOINTMENT_INVALID_STATUS")
     {
         if (Status != statusEsperado)
-            throw new DomainException(codigo, mensagem);
+        {
+            throw new DomainException(
+                codigo,
+                mensagem);
+        }
 
         var statusAnterior = Status;
+
         Status = novoStatus;
 
-        AddDomainEvent(new AgendamentoStatusAlteradoDomainEvent(
-            Id,
-            statusAnterior,
-            novoStatus));
+        AddDomainEvent(
+            new AgendamentoStatusAlteradoDomainEvent(
+                Id,
+                statusAnterior,
+                novoStatus));
     }
 }

@@ -3,8 +3,6 @@ using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.Extensions.Logging;
 using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
-using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
-using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
 namespace BarbeariaCore.Application.Services
 {
@@ -62,13 +60,15 @@ namespace BarbeariaCore.Application.Services
 
         private void ValidarUsuario(Usuario usuario, string login)
         {
+            var agora = DateTime.Now;
+
             if (!usuario.Ativado)
             {
                 _logger.LogWarning("Tentativa de logar com um usuário inátivo {login}",login);
                 throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
             }
 
-            if (!usuario.PodeLogar())
+            if (!usuario.PodeLogar(agora))
             {
                 _logger.LogWarning("Tentativa de logar com um usuário bloqueado {login}", login);
                 throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
@@ -77,7 +77,9 @@ namespace BarbeariaCore.Application.Services
 
         private async Task RegistrarFalha(Usuario usuario, string login)
         {
-            usuario.RegistrarFalhaLogin();
+            var agora = DateTime.Now;
+
+            usuario.RegistrarFalhaLogin(agora);
             await _repository.Atualizar(usuario);
             await _uow.SaveChangesAsync();
             _logger.LogWarning("Tentativa de logar com uma senha incorreta {login}", login);
@@ -88,7 +90,7 @@ namespace BarbeariaCore.Application.Services
             var access_token = _token.GenerateToken(usuario);
             var refresh = _token.GenerateRefreshToken();
 
-            await _refresh.SaveAsync(usuario.Id, refresh, DateTime.Now.AddDays(7));
+            await _refresh.SaveAsync(usuario.Id, refresh, DateTime.UtcNow.AddDays(7));
 
             await _uow.SaveChangesAsync();
 

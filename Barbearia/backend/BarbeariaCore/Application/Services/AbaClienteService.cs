@@ -58,7 +58,7 @@ namespace BarbeariaCore.Application.Services
                 IdCliente = horario.ClienteId,
                 IdBarbeiro = horario.BarbeiroId,
                 IdServico = horario.ServicoId,
-                Horario = horario.Horario,
+                Horario = horario.DataAgendamento,
                 Status = horario.Status
             };
         }
@@ -77,7 +77,7 @@ namespace BarbeariaCore.Application.Services
                 IdCliente = horario.ClienteId,
                 IdBarbeiro = horario.BarbeiroId,
                 IdServico = horario.ServicoId,
-                Horario = horario.Horario,
+                Horario = horario.DataAgendamento,
                 Status = horario.Status
             };
         }

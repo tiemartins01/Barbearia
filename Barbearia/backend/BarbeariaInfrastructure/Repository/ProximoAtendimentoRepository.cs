@@ -1,72 +1,144 @@
-﻿using BarbeariaCore.Domain.Entities;
-using BarbeariaCore.Domain.Enum;
-using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Infrastructure.Data;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Models;
+using BarbeariaCore.Domain.Entities;
+using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using System.Data;
-
 
 namespace BarbeariaInfrastructure.Repository
 {
-    public class ProximoAtendimentoRepository : IProximoAtendimentoRepository
+    public class ProximoAtendimentoRepository
+        : IProximoAtendimentoRepository
     {
-
         private readonly AppDbContext _context;
 
-        public ProximoAtendimentoRepository(AppDbContext context)
+        public ProximoAtendimentoRepository(
+            AppDbContext context)
         {
             _context = context;
         }
-        // PEGA O PRÓXIMO AGENDAMENTO QUE NÃO FOI CANCELADO OU CONCLUIDO
-        public async Task<DTOProximoAgendamento?> InfoProximoAgendamento(int id)
+
+        public async Task<DTOProximoAgendamento?>
+            InfoProximoAgendamento(
+                int idUsuario)
         {
             var agora = DateTime.Now;
+
             return await _context.Agendamentos
                 .AsNoTracking()
-                .Where(x => x.ClienteId == id && x.Horario > agora && x.Status == StatusAgendamento.Agendado)
-                .OrderBy(x => x.Horario)
-                .Select(x => new DTOProximoAgendamento
-                {
-                    Horario = x.Horario.ToString("yyyy-MM-ddTHH:mm:ss"),
-                    NomeBarbeiro = x.Barbeiro.Usuario.Nome,
-                    NomeServico = x.Servico.Nome
-                })
+                .Where(x =>
+                    x.ClienteId == idUsuario &&
+                    x.DataAgendamento > agora &&
+                    x.Status ==
+                        StatusAgendamento.Agendado)
+                .OrderBy(x =>
+                    x.DataAgendamento)
+                .Select(x =>
+                    new DTOProximoAgendamento
+                    {
+                        Horario =
+                            x.DataAgendamento
+                                .ToString(
+                                    "yyyy-MM-ddTHH:mm:ss"),
+
+                        NomeBarbeiro =
+                            x.Barbeiro.Usuario.Nome,
+
+                        NomeServico =
+                            x.Servico.Nome
+                    })
                 .FirstOrDefaultAsync();
         }
-        // ADICIONANDO O NOVO AGENDAMENTO
-        public async Task MarcarAgendamento(Agendamento horario)
-        {
-            await _context.Agendamentos.AddAsync(horario);
-        }
-        // VERIFICA SE O BARBEIRO NAQUELE HORÁRIO ESTÁ DISPONÍVEL
-        public Task<bool> DisponibilidadeHorario(DateTime horario, int id_barbeiro)
-        {
-            horario = DateTime.SpecifyKind(horario, DateTimeKind.Unspecified);
 
-            return _context.Agendamentos.AsNoTracking().AnyAsync(x =>
-                x.BarbeiroId == id_barbeiro &&
-                x.Horario == horario &&
-                x.Status == StatusAgendamento.Agendado);
-        }
-        // ESSE E DO SERVIÇO, É FEITO PARA QUE UMA PESSOA TENTE DE OUTRA FORMA ADICIONAR UM HORÁRIO COM BARBEIRO OU SERVIÇO EXISTENTE
-        // EXEMPLO COM O POSTMAN, TENTA ADICIONAR NÃO PELO APLICATIVO
-        public  Task<bool> BarbeiroExiste(int id_barbeiro) => _context.Barbeiros.AsNoTracking().AnyAsync(x => x.Id == id_barbeiro && x.Usuario.Ativado);
-        public  Task<bool> ServicoExiste(int id_servico) => _context.Servicos.AsNoTracking().AnyAsync(x => x.Id == id_servico && x.Ativo);
-
-        // BUSCA OS HORÁRIOS OCUPADOS PARA QUE NO FRONT NÃO APAREÇA DISPONÍVEL PARA QUE OUTRA PESSOA TENTE AGENDAR O HORÁRIO
-        public async Task<List<TimeOnly>> BuscarHorariosOcupadosAsync(int idBarbeiro, DateOnly data)
+        public async Task MarcarAgendamento(
+            Agendamento agendamento)
         {
-            var inicio = data.ToDateTime(TimeOnly.MinValue);
-            var fim = data.ToDateTime(TimeOnly.MaxValue);
+            await _context.Agendamentos
+                .AddAsync(agendamento);
+        }
+
+        public Task<bool> ExisteConflitoAsync(
+            int barbeiroId,
+            DateTime inicio,
+            DateTime fim)
+        {
+            inicio =
+                DateTime.SpecifyKind(
+                    inicio,
+                    DateTimeKind.Unspecified);
+
+            fim =
+                DateTime.SpecifyKind(
+                    fim,
+                    DateTimeKind.Unspecified);
+
+            return _context.Agendamentos
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.BarbeiroId == barbeiroId &&
+                    x.Status ==
+                        StatusAgendamento.Agendado &&
+
+                    inicio < x.HorarioFim &&
+                    fim > x.DataAgendamento);
+        }
+
+        public Task<bool> BarbeiroExiste(
+            int barbeiroId)
+        {
+            return _context.Barbeiros
+                .AsNoTracking()
+                .AnyAsync(x =>
+                    x.Id == barbeiroId &&
+                    x.Usuario.Ativado);
+        }
+
+        public Task<Servico?> ObterServicoAsync(
+            int servicoId)
+        {
+            return _context.Servicos
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.Id == servicoId &&
+                    x.Ativo);
+        }
+
+        public async Task<
+            IReadOnlyList<PeriodoOcupado>>
+            BuscarPeriodosOcupadosAsync(
+                int barbeiroId,
+                DateOnly data)
+        {
+            var inicioDia =
+                data.ToDateTime(
+                    TimeOnly.MinValue);
+
+            var fimDia =
+                data.AddDays(1)
+                    .ToDateTime(
+                        TimeOnly.MinValue);
 
             return await _context.Agendamentos
                 .AsNoTracking()
-                .Where(x => x.BarbeiroId == idBarbeiro
-                         && x.Horario >= inicio
-                         && x.Horario <= fim)
-                .OrderBy(x => x.Horario)
-                .Select(x => new TimeOnly(x.Horario.Hour, x.Horario.Minute)) // TimeOnly.FromDateTime(x.Horario)
+                .Where(x =>
+                    x.BarbeiroId == barbeiroId &&
+                    x.Status ==
+                        StatusAgendamento.Agendado &&
+
+                    x.DataAgendamento < fimDia &&
+                    x.HorarioFim > inicioDia)
+                .OrderBy(x =>
+                    x.DataAgendamento)
+                .Select(x =>
+                    new PeriodoOcupado
+                    {
+                        Inicio =
+                            x.DataAgendamento,
+
+                        Fim =
+                            x.HorarioFim
+                    })
                 .ToListAsync();
         }
     }

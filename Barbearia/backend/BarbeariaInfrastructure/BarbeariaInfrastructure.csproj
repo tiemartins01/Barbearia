@@ -5,7 +5,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\Configuration\" />
     <Folder Include="Data\DatabaseErrors\Abstractions\" />
     <Folder Include="Repository\" />
   </ItemGroup>

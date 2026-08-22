@@ -33,7 +33,7 @@ namespace BarbeariaCore.Domain.Entities
 
         public void AlterarPreco(decimal novoPreco)
         {
-            if(novoPreco >= 0)
+            if(novoPreco <= 0)
                 throw new DomainException("SERVICE_INVALID_PRICE", "Preço deve ser maior que 0.");
 
             Preco = novoPreco;                

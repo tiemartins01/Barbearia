@@ -4,9 +4,20 @@ namespace BarbeariaCore.Application.Interfaces
 {
     public interface IProximoAtendimentoService
     {
+        Task<DTOProximoAgendamento?>
+            ObterProximoAtendimentoAsync(
+                int idUsuario);
 
-        Task<DTOProximoAgendamento> ObterProximoAtendimentoAsync(int id);
-        Task<DTOResposta> AgendarHorarioAsync(int id_barbeiro, int id_usuario, int id_servico, DateTime horario);
-        Task<IReadOnlyCollection<TimeOnly>> ObterHorariosDisponiveisAsync(int idBarbeiro, DateOnly data);
+        Task<DTOResposta> AgendarHorarioAsync(
+            int idBarbeiro,
+            int idUsuario,
+            int idServico,
+            DateTime horario);
+
+        Task<IReadOnlyCollection<TimeOnly>>
+            ObterHorariosDisponiveisAsync(
+                int idBarbeiro,
+                int idServico,
+                DateOnly data);
     }
 }

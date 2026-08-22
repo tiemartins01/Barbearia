@@ -36,8 +36,18 @@ namespace BarbeariaApi.Controllers
 
         [HttpGet("horarioslivres")]
         [HttpGet("~/api/v1/appointments/available-slots")]
-        public async Task<IActionResult> ConsultarHorariosLivres([FromQuery] int id_barbeiro, [FromQuery] DateOnly data) =>
-            Ok(await _service.ObterHorariosDisponiveisAsync(id_barbeiro,data));
+        public async Task<IActionResult> ConsultarHorariosLivres(
+     [FromQuery] int id_barbeiro,
+     [FromQuery] int id_servico,
+     [FromQuery] DateOnly data)
+        {
+            var horarios = await _service.ObterHorariosDisponiveisAsync(
+                id_barbeiro,
+                id_servico,
+                data);
+
+            return Ok(horarios);
+        }
 
         [HttpPost("marcar")]
         [HttpPost("~/api/v1/appointments")]

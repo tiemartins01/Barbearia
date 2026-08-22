@@ -3,18 +3,25 @@ using BarbeariaCore.Application.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Exceptions;
 using Microsoft.Extensions.Logging;
-using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
-using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
-using ValidationException = BarbeariaCore.Exceptions.ValidationException;
+
+using ValidationException =
+    BarbeariaCore.Exceptions.ValidationException;
+
 namespace BarbeariaCore.Application.Services
 {
-    public class ProximoAtendimentoService : IProximoAtendimentoService
+    public class ProximoAtendimentoService
+        : IProximoAtendimentoService
     {
-        private readonly IProximoAtendimentoRepository _repository;
+        private readonly
+            IProximoAtendimentoRepository _repository;
+
         private readonly IUnitOfWork _uow;
-        private readonly ILogger<ProximoAtendimentoService> _logger;
+
+        private readonly
+            ILogger<ProximoAtendimentoService> _logger;
 
         public ProximoAtendimentoService(
             IProximoAtendimentoRepository repository,
@@ -26,106 +33,124 @@ namespace BarbeariaCore.Application.Services
             _logger = logger;
         }
 
-        public async Task<DTOProximoAgendamento> ObterProximoAtendimentoAsync(int idUsuario)
+        public async Task<DTOProximoAgendamento?>
+            ObterProximoAtendimentoAsync(
+                int idUsuario)
         {
             if (idUsuario <= 0)
             {
-                _logger.LogWarning(
-                    "Tentativa de buscar próximo atendimento com id inválido. Id={IdUsuario}",
-                    idUsuario);
-
-                throw new ValidationException("USER_ID_INVALID","O identificador do usuário é inválido.");
+                throw new ValidationException(
+                    "USER_ID_INVALID",
+                    "O identificador do usuário é inválido.");
             }
 
-            var agendamento = await _repository.InfoProximoAgendamento(idUsuario);
+            var agendamento =
+                await _repository
+                    .InfoProximoAgendamento(
+                        idUsuario);
 
             if (agendamento is null)
             {
                 _logger.LogInformation(
                     "Usuário {IdUsuario} não possui agendamentos futuros.",
                     idUsuario);
-
-                return null;
             }
 
             return agendamento;
         }
 
-        public async Task<DTOResposta> AgendarHorarioAsync(
-            int idBarbeiro,
-            int idUsuario,
-            int idServico,
-            DateTime horario)
+        public async Task<DTOResposta>
+            AgendarHorarioAsync(
+                int idBarbeiro,
+                int idUsuario,
+                int idServico,
+                DateTime horario)
         {
+            ValidarIds(
+                idBarbeiro,
+                idUsuario,
+                idServico);
+
             var agora = DateTime.Now;
 
-            ValidarParametros(idUsuario, idBarbeiro, idServico);
+            await ValidarBarbeiroAsync(
+                idBarbeiro);
 
-            if (horario <= agora)
-            {
-                _logger.LogWarning(
-                    "Tentativa de agendar horário passado. Cliente={Cliente} Horario={Horario}",
-                    idUsuario,
-                    horario);
+            var servico =
+                await ObterServicoAsync(
+                    idServico);
 
-                throw new ValidationException("APPOINTMENT_DATE_INVALID","O horário do agendamento deve estar no futuro.");
-            }
+            var duracao =
+                servico.Duracao;
 
-            await ValidarBarbeiroAsync(idBarbeiro);
-
-            await ValidarServicoAsync(idServico);
-
-            await ValidarDisponibilidadeAsync(idBarbeiro, horario);            
-
-            var agendamento = new Agendamento(
-                idUsuario,
+            await ValidarDisponibilidadeAsync(
                 idBarbeiro,
-                idServico,
                 horario,
-                agora);
+                duracao);
+
+            var agendamento =
+                new Agendamento(
+                    idUsuario,
+                    idBarbeiro,
+                    idServico,
+                    duracao,
+                    horario,
+                    agora);
 
             await _uow.BeginTransactionAsync();
 
             try
             {
-                await _repository.MarcarAgendamento(agendamento);
+                await _repository
+                    .MarcarAgendamento(
+                        agendamento);
 
+                // Primeiro Save:
+                // gera o Id do Agendamento.
                 await _uow.SaveChangesAsync();
 
+                // Agora o Id é válido.
                 agendamento.RegistrarCriacao();
 
+                // Segundo Save:
+                // grava o Domain Event no Outbox.
                 await _uow.SaveChangesAsync();
 
-                await _uow.CommitTransactionAsync();
+                await _uow
+                    .CommitTransactionAsync();
 
                 _logger.LogInformation(
-                    "Agendamento criado. Cliente={Cliente} Barbeiro={Barbeiro} Serviço={Servico} Horario={Horario}",
+                    "Agendamento criado. Cliente={Cliente} Barbeiro={Barbeiro} Serviço={Servico} Inicio={Inicio} Fim={Fim}",
                     idUsuario,
                     idBarbeiro,
                     idServico,
-                    horario);
+                    agendamento.DataAgendamento,
+                    agendamento.HorarioFim);
 
                 return new DTOResposta
                 {
                     Sucesso = true,
-                    Mensagem = "Horário agendado com sucesso!"
+                    Mensagem =
+                        "Horário agendado com sucesso!"
                 };
             }
-            catch (PersistenceConflictException ex)
-            when (ex.Code == "APPOINTMENT_TIME_CONFLICT")
+            catch (
+                PersistenceConflictException ex)
+                when (
+                    ex.Code ==
+                    "APPOINTMENT_TIME_CONFLICT")
             {
                 await _uow.RollbackAsync();
 
-                _logger.LogError(
+                _logger.LogWarning(
                     ex,
-                    "Erro ao gravar agendamento. Cliente={Cliente} Barbeiro={Barbeiro} Horario={Horario}",
-                    idUsuario,
+                    "Conflito ao criar agendamento. Barbeiro={Barbeiro} Inicio={Inicio}",
                     idBarbeiro,
                     horario);
 
                 throw new ConflictException(
-            "APPOINTMENT_TIME_CONFLICT",
-            "O barbeiro já possui um agendamento ativo neste horário.");
+                    "APPOINTMENT_TIME_CONFLICT",
+                    "O barbeiro já possui um agendamento ativo neste período.");
             }
             catch (Exception ex)
             {
@@ -142,63 +167,131 @@ namespace BarbeariaCore.Application.Services
             }
         }
 
-        public async Task<IReadOnlyCollection<TimeOnly>> ObterHorariosDisponiveisAsync(
-            int idBarbeiro,
-            DateOnly data)
+        public async Task<
+            IReadOnlyCollection<TimeOnly>>
+            ObterHorariosDisponiveisAsync(
+                int idBarbeiro,
+                int idServico,
+                DateOnly data)
         {
             if (idBarbeiro <= 0)
-                throw new ValidationException("BARBER_ID_INVALID",
-    "O identificador do barbeiro é inválido.");
-
-            if (data < DateOnly.FromDateTime(DateTime.Now))
-                throw new ValidationException(
-    "APPOINTMENT_DATE_INVALID",
-    "A data informada não pode estar no passado.");
-
-            await ValidarBarbeiroAsync(idBarbeiro);
-
-            var ocupados = await _repository.BuscarHorariosOcupadosAsync(
-                idBarbeiro,
-                data);
-
-            var horariosOcupados = ocupados
-                .Select(x => new TimeOnly(x.Hour, x.Minute))
-                .ToHashSet();
-
-            var horariosDisponiveis = new List<TimeOnly>();
-
-            var horarioAtual = new TimeOnly(8, 0);
-            var horarioFinal = new TimeOnly(18, 0);
-
-            while (horarioAtual < horarioFinal)
             {
-                if (!horariosOcupados.Contains(horarioAtual))
-                    horariosDisponiveis.Add(horarioAtual);
-
-                horarioAtual = horarioAtual.AddMinutes(30);
+                throw new ValidationException(
+                    "BARBER_ID_INVALID",
+                    "O identificador do barbeiro é inválido.");
             }
 
-            return horariosDisponiveis;
+            if (idServico <= 0)
+            {
+                throw new ValidationException(
+                    "SERVICE_ID_INVALID",
+                    "O identificador do serviço é inválido.");
+            }
+
+            var agora = DateTime.Now;
+
+            PoliticaAgenda.ValidarDataNaoPassada(
+                data,
+                DateOnly.FromDateTime(agora));
+
+            await ValidarBarbeiroAsync(
+                idBarbeiro);
+
+            var servico =
+                await ObterServicoAsync(
+                    idServico);
+
+            var periodosOcupados =
+                await _repository
+                    .BuscarPeriodosOcupadosAsync(
+                        idBarbeiro,
+                        data);
+
+            var grade =
+                PoliticaAgenda
+                    .GerarGradeHorario();
+
+            var disponiveis =
+                new List<TimeOnly>();
+
+            foreach (var horarioGrade in grade)
+            {
+                var inicio =
+                    data.ToDateTime(
+                        horarioGrade);
+
+                // Se for hoje, não mostra horários
+                // que já passaram.
+                if (inicio <= agora)
+                    continue;
+
+                if (!PoliticaAgenda
+                    .CabeNoExpediente(
+                        inicio,
+                        servico.Duracao))
+                {
+                    continue;
+                }
+
+                var fim =
+                    inicio.AddMinutes(
+                        servico.Duracao);
+
+                var existeConflito =
+                    periodosOcupados.Any(
+                        periodo =>
+                            PoliticaAgenda
+                                .ExisteSobreposicao(
+                                    inicio,
+                                    fim,
+                                    periodo.Inicio,
+                                    periodo.Fim));
+
+                if (!existeConflito)
+                {
+                    disponiveis.Add(
+                        horarioGrade);
+                }
+            }
+
+            return disponiveis;
         }
 
-        private static void ValidarParametros(
-            int idUsuario,
+        private static void ValidarIds(
             int idBarbeiro,
+            int idUsuario,
             int idServico)
         {
-            if (idUsuario <= 0)
-                throw new ValidationException("USER_ID_INVALID", "Dados inválidos!");
-
             if (idBarbeiro <= 0)
-                throw new ValidationException("BARBER_ID_INVALID", "Dados inválidos!");
+            {
+                throw new ValidationException(
+                    "BARBER_ID_INVALID",
+                    "O identificador do barbeiro é inválido.");
+            }
+
+            if (idUsuario <= 0)
+            {
+                throw new ValidationException(
+                    "USER_ID_INVALID",
+                    "O identificador do usuário é inválido.");
+            }
 
             if (idServico <= 0)
-                throw new ValidationException("SERVICE_ID_INVALID", "Dados inválidos!");
+            {
+                throw new ValidationException(
+                    "SERVICE_ID_INVALID",
+                    "O identificador do serviço é inválido.");
+            }
         }
 
-        private async Task ValidarBarbeiroAsync(int idBarbeiro)
+        private async Task
+            ValidarBarbeiroAsync(
+                int idBarbeiro)
         {
-            var existe = await _repository.BarbeiroExiste(idBarbeiro);
+            var existe =
+                await _repository
+                    .BarbeiroExiste(
+                        idBarbeiro);
 
             if (existe)
                 return;
@@ -207,41 +300,70 @@ namespace BarbeariaCore.Application.Services
                 "Barbeiro inexistente. Id={IdBarbeiro}",
                 idBarbeiro);
 
-            throw new NotFoundException("BARBER_NOT_FOUND",
-    "Barbeiro não encontrado.");
+            throw new NotFoundException(
+                "BARBER_NOT_FOUND",
+                "Barbeiro não encontrado.");
         }
 
-        private async Task ValidarServicoAsync(int idServico)
+        private async Task<Servico>
+            ObterServicoAsync(
+                int idServico)
         {
-            var existe = await _repository.ServicoExiste(idServico);
+            var servico =
+                await _repository
+                    .ObterServicoAsync(
+                        idServico);
 
-            if (existe)
-                return;
+            if (servico is not null)
+                return servico;
 
             _logger.LogWarning(
-                "Serviço inexistente. Id={IdServico}",
+                "Serviço inexistente ou inativo. Id={IdServico}",
                 idServico);
 
-            throw new NotFoundException("SERVICE_NOT_FOUND", "Serviço não encontrado.");
+            throw new NotFoundException(
+                "SERVICE_NOT_FOUND",
+                "Serviço não encontrado.");
         }
 
-        private async Task ValidarDisponibilidadeAsync(
-            int idBarbeiro,
-            DateTime horario)
+        private async Task
+            ValidarDisponibilidadeAsync(
+                int idBarbeiro,
+                DateTime horario,
+                int duracao)
         {
-            var ocupado = await _repository.DisponibilidadeHorario(
-                horario,
-                idBarbeiro);
+            var fim =
+                horario.AddMinutes(
+                    duracao);
 
-            if (!ocupado)
-                return;
+            var existeConflito =
+                await _repository
+                    .ExisteConflitoAsync(
+                        idBarbeiro,
+                        horario,
+                        fim);
 
-            _logger.LogWarning(
-                "Tentativa de agendar horário ocupado. Barbeiro={Barbeiro} Horario={Horario}",
-                idBarbeiro,
-                horario);
+            try
+            {
+                PoliticaAgenda
+                    .GarantirDisponibilidade(
+                        existeConflito);
+            }
+            catch (DomainException ex)
+                when (
+                    ex.Code ==
+                    "APPOINTMENT_TIME_CONFLICT")
+            {
+                _logger.LogWarning(
+                    "Tentativa de criar agendamento sobreposto. Barbeiro={Barbeiro} Inicio={Inicio} Fim={Fim}",
+                    idBarbeiro,
+                    horario,
+                    fim);
 
-            throw new ConflictException("APPOINTMENT_TIME_CONFLICT", "O barbeiro já possui um agendamento ativo neste horário.");
+                throw new ConflictException(
+                    "APPOINTMENT_TIME_CONFLICT",
+                    "O barbeiro já possui um agendamento ativo neste período.");
+            }
         }
     }
 }
