@@ -1,21 +1,22 @@
-﻿using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.Interfaces.Queries;
+using BarbeariaCore.Application.Interfaces.Services;
 
 namespace BarbeariaCore.Application.Services
 {
-    public class ServicosAtivosService : IServicosService
+    public sealed class ServicosAtivosService : IServicosService
     {
+        private readonly IServicosAtivosQuery _query;
 
-        private readonly IServicosRepository _repository;
-
-        public ServicosAtivosService(IServicosRepository repository)
+        public ServicosAtivosService(IServicosAtivosQuery query)
         {
-            _repository = repository;
+            _query = query;
         }
 
         public async Task<List<DTOServicosAtivos>> CarregarServicosAtivos()
         {
-            return await _repository.GetServicosAtivos();
+            var servicos = await _query.ListarAsync();
+            return servicos.ToList();
         }
     }
 }

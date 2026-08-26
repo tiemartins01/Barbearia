@@ -1,5 +1,5 @@
 using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Infrastructure.Data;
+using BarbeariaInfrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using BarbeariaCore.Application.Exceptions;

@@ -1,49 +1,63 @@
-﻿using BarbeariaCore.Domain.Entities;
-using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Domain.Policies;
+using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Policies;
+using BarbeariaCore.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
-using BarbeariaCore.Exceptions;
 
 namespace BarbeariaCore.Application.Services
 {
-    public class NovoClienteService : INovoClienteService
+    public sealed class NovoClienteService : INovoClienteService
     {
-
-        private readonly INovoClienteRepository _repository;
+        private readonly IUsuarioRepository _usuarios;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<NovoClienteService> _logger;
         private readonly IPasswordHash _hash;
 
-        public NovoClienteService(INovoClienteRepository repository, IUnitOfWork uow, ILogger<NovoClienteService> logger, IPasswordHash hash)
+        public NovoClienteService(
+            IUsuarioRepository usuarios,
+            IUnitOfWork uow,
+            ILogger<NovoClienteService> logger,
+            IPasswordHash hash)
         {
-            _repository = repository;
+            _usuarios = usuarios;
             _uow = uow;
             _logger = logger;
             _hash = hash;
         }
 
-        public async Task<DTOResposta> CadastrarAsync(string nome, string email, string telefone, string cpf, string login, string senha, string foto)
+        public async Task<DTOResposta> CadastrarAsync(
+            string nome,
+            string email,
+            string telefone,
+            string cpf,
+            string login,
+            string senha,
+            string foto)
         {
             nome = nome.Trim();
             login = login.Trim().ToLowerInvariant();
 
-            // DADOS DEVEM SER VERIFICADOS NO VALUE OBJECTS
             var emailNormalizado = new Email(email);
             var telefoneNormalizado = new Telefone(telefone);
             var cpfNormalizado = new Cpf(cpf);
 
             PoliticaSenha.Validar(senha);
-            var hash = _hash.Hash(senha);
-            var senhaDominio = Senha.DeHash(hash);
 
-            await ValidarDuplicidadeAsync(emailNormalizado.Valor, cpfNormalizado.Valor, telefoneNormalizado.Valor, login);
+            await ValidarUnicidadeAsync(
+                emailNormalizado,
+                cpfNormalizado,
+                telefoneNormalizado,
+                login);
 
-            var novo_usuario = new Usuario
-            (
+            var senhaHash = _hash.Hash(senha);
+            var senhaDominio = Senha.DeHash(senhaHash);
+
+            var novoUsuario = new Usuario(
                 nome,
                 emailNormalizado,
                 telefoneNormalizado,
@@ -52,63 +66,44 @@ namespace BarbeariaCore.Application.Services
                 senhaDominio,
                 RolePerson.Cliente,
                 true,
-                foto
-            );
+                foto);
 
-            await _repository.CadastraNovoClienteAsync(novo_usuario);
+            await _usuarios.AdicionarAsync(novoUsuario);
 
             await _uow.SaveChangesAsync();
 
-            novo_usuario.RegistrarCriacao();
+            novoUsuario.RegistrarCriacao();
 
-            await _uow.SaveChangesAsync(); // para que o UsuarioCriadoDomainEvent não fique com id 0
-            // Evitando que o DomainEvent capture o Id cedo demais e fique permanentemente com 0.
+            await _uow.SaveChangesAsync();
 
-            _logger.LogInformation("Usuário novo cadastrado com o login: {login}", login);
+            _logger.LogInformation(
+                "Usuário novo cadastrado com o login: {Login}",
+                login);
+
             return new DTOResposta
             {
                 Sucesso = true,
                 Mensagem = "Usuário cadastrado com sucesso!"
-
             };
         }
 
-        private async Task ValidarDuplicidadeAsync(string email, string cpf, string telefone, string login)
+        private async Task ValidarUnicidadeAsync(
+            Email email,
+            Cpf cpf,
+            Telefone telefone,
+            string login)
         {
-            var existente = await _repository.VerificarDuplicidadeAsync(
-            email,
-            cpf,
-            telefone,
-            login);
+            if (await _usuarios.ObterPorEmailAsync(email.Valor) is not null)
+                throw new DomainException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado.");
 
-            if (existente is null)
-                return;
+            if (await _usuarios.ObterPorCpfAsync(cpf.Valor) is not null)
+                throw new DomainException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado.");
 
-            if (existente.Email.Valor == email)
-            {
-                _logger.LogWarning("Tentativa de cadastro com e-mail já existente");
-                throw new ConflictException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado!");
-            }
+            if (await _usuarios.ObterPorTelefoneAsync(telefone.Valor) is not null)
+                throw new DomainException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado.");
 
-            if (existente.CPF.Valor == cpf)
-            {
-                _logger.LogWarning("Tentativa de cadastro com CPF já existente");
-                throw new ConflictException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado!");
-            }
-
-            if (existente.Phone.Valor == telefone)
-            {
-                _logger.LogWarning("Tentativa de cadastro com telefone já existente");
-                throw new ConflictException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado!");
-            }
-
-            if (existente.Login == login)
-            {
-                _logger.LogWarning(
-                    "Tentativa de cadastro com login já existente: {Login}",
-                    login);
-                throw new ConflictException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado!");
-            }
+            if (await _usuarios.ObterPorLoginAsync(login) is not null)
+                throw new DomainException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado.");
         }
     }
 }

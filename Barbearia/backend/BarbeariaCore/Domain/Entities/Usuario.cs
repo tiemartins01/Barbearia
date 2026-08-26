@@ -1,8 +1,9 @@
 using BarbeariaCore.Domain.Common;
-using BarbeariaCore.Domain.Events;
-using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Domain.Enum;
+using BarbeariaCore.Domain.Events;
 using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Policies;
+using BarbeariaCore.Domain.ValueObjects;
 
 namespace BarbeariaCore.Domain.Entities;
 
@@ -18,7 +19,7 @@ public sealed class Usuario : AggregateRoot
 
     public Email Email { get; private set; } = null!;
 
-    public Telefone Phone { get; private set; } = null!;
+    public Telefone Numero { get; private set; } = null!;
 
     public Cpf CPF { get; private set; } = null!;
 
@@ -49,7 +50,7 @@ public sealed class Usuario : AggregateRoot
     public Usuario(
         string nome,
         Email email,
-        Telefone phone,
+        Telefone numero,
         Cpf cpf,
         string login,
         Senha senha,
@@ -65,7 +66,7 @@ public sealed class Usuario : AggregateRoot
             "USER_INVALID_EMAIL",
             "E-mail é obrigatório.");
 
-        Phone = phone ?? throw new DomainException(
+        Numero = numero ?? throw new DomainException(
             "USER_INVALID_PHONE",
             "Telefone é obrigatório.");
 
@@ -112,7 +113,7 @@ public sealed class Usuario : AggregateRoot
             "USER_INVALID_EMAIL",
             "E-mail é obrigatório.");
 
-        Phone = telefone ?? throw new DomainException(
+        Numero = telefone ?? throw new DomainException(
             "USER_INVALID_PHONE",
             "Telefone é obrigatório.");
 
@@ -130,9 +131,12 @@ public sealed class Usuario : AggregateRoot
             new SenhaAlteradaDomainEvent(Id));
     }
 
-    public bool PodeLogar(
+    public bool PodeAutenticar(
         DateTime agora)
     {
+        if (!Ativado)
+            return false;
+
         return BloqueioAte is null ||
                BloqueioAte <= agora;
     }
@@ -142,11 +146,10 @@ public sealed class Usuario : AggregateRoot
     {
         TentativasLogin++;
 
-        if (TentativasLogin < 5)
+        if (TentativasLogin < PoliticaAutenticacao.LimiteTentativas)
             return;
 
-        BloqueioAte =
-            agora.AddMinutes(5);
+        BloqueioAte = agora.Add(PoliticaAutenticacao.DuracaoBloqueio);
 
         AddDomainEvent(
             new UsuarioBloqueadoDomainEvent(
@@ -173,8 +176,7 @@ public sealed class Usuario : AggregateRoot
 
         Codigo = codigo.Trim();
 
-        CodigoRecuperacaoExpiraEm =
-            agora.AddMinutes(15);
+        CodigoRecuperacaoExpiraEm = agora.Add(PoliticaAutenticacao.TempoCodigo);
 
         CodigoAtivo = true;
         TentativasCodigo = 0;
@@ -211,7 +213,7 @@ public sealed class Usuario : AggregateRoot
     {
         TentativasCodigo++;
 
-        if (TentativasCodigo >= 5)
+        if (TentativasCodigo >= PoliticaAutenticacao.LimiteTentativas)
         {
             CodigoAtivo = false;
         }

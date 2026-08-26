@@ -1,11 +1,9 @@
-﻿using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.DTOs;
 
-namespace BarbeariaCore.Application.Interfaces
+namespace BarbeariaCore.Application.Interfaces.Services
 {
     public interface ILoginService
     {
         Task<DTOAuthResponse> RealizarLoginAsync(string login, string senha);
-        
-
     }
 }

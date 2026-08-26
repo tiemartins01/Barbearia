@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 using System.Text;
 
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaInfrastructure.Security
 {
     public class TokenService : ITokenService
     {

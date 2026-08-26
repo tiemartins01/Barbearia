@@ -5,20 +5,21 @@ using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException
 using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
 using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 using BarbeariaCore.Exceptions;
+using BarbeariaCore.Application.Interfaces.Repositories;
 namespace BarbeariaCore.Application.Services
 {
     public class RefreshTokenService : IRefreshTokenService
     {
         private readonly IRefreshRepository _repository;
         private readonly ITokenService _token;
-        private readonly ILoginRepository _loginRepository;
+        private readonly IUsuarioRepository _usuarios;
         private readonly IUnitOfWork _uow;
 
-        public RefreshTokenService(IRefreshRepository repository, ITokenService token, ILoginRepository loginRepository, IUnitOfWork uow)
+        public RefreshTokenService(IRefreshRepository repository, ITokenService token, IUsuarioRepository loginRepository, IUnitOfWork uow)
         {
             _repository = repository;
             _token = token;
-            _loginRepository = loginRepository;
+            _usuarios = loginRepository;
             _uow = uow;
         }
 
@@ -35,6 +36,8 @@ namespace BarbeariaCore.Application.Services
 
         public async Task<DTOAuthResponse> GerarRefreshAsync(string refreshToken)
         {
+            var agora = DateTime.Now;
+
             var refresh = await _repository.GetAsync(refreshToken);
             if (refresh is null)
                 throw InvalidRefresh();
@@ -53,8 +56,8 @@ namespace BarbeariaCore.Application.Services
             if (refresh.EstaExpirado(DateTime.UtcNow))
                 throw InvalidRefresh();
 
-            var usuario = await _loginRepository.ObterPorIdAsync(refresh.UsuarioId);
-            if (usuario is null || !usuario.Ativado || !usuario.PodeLogar())
+            var usuario = await _usuarios.ObterPorIdAsync(refresh.UsuarioId);
+            if (usuario is null || !usuario.Ativado || !usuario.PodeAutenticar(agora))
                 throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida");
 
             var accessToken = _token.GenerateToken(usuario);

@@ -1,5 +1,6 @@
-﻿using BarbeariaCore.Application.DTOs;
-namespace BarbeariaCore.Application.Interfaces
+using BarbeariaCore.Application.DTOs;
+
+namespace BarbeariaCore.Application.Interfaces.Services
 {
     public interface IServicosService
     {

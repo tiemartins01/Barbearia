@@ -1,5 +1,6 @@
 using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 

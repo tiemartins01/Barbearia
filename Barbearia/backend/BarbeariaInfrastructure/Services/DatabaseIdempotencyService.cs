@@ -1,7 +1,7 @@
 using System.Text.Json;
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Domain.Exceptions;
-using BarbeariaCore.Infrastructure.Data;
+using BarbeariaInfrastructure.Data;
 using BarbeariaCore.Infrastructure.Data.Operational;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;

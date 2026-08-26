@@ -1,105 +1,88 @@
-﻿using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
 
 namespace BarbeariaCore.Application.Services
 {
-    public class LoginService : ILoginService
+    public sealed class LoginService : ILoginService
     {
-
-        private readonly ILoginRepository _repository;
+        private readonly IUsuarioRepository _usuarios;
         private readonly ITokenService _token;
         private readonly IRefreshRepository _refresh;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<LoginService> _logger;
         private readonly IPasswordHash _passwordHash;
 
-        public LoginService (ILoginRepository repository, ITokenService token, IRefreshRepository refresh, IUnitOfWork uow, ILogger<LoginService> logger, IPasswordHash password)
+        public LoginService(
+            IUsuarioRepository usuarios,
+            ITokenService token,
+            IRefreshRepository refresh,
+            IUnitOfWork uow,
+            ILogger<LoginService> logger,
+            IPasswordHash passwordHash)
         {
-            _repository = repository;
+            _usuarios = usuarios;
             _token = token;
             _refresh = refresh;
             _uow = uow;
             _logger = logger;
-            _passwordHash = password;
+            _passwordHash = passwordHash;
         }
 
         public async Task<DTOAuthResponse> RealizarLoginAsync(string login, string senha)
         {
-            // DTO VALIDATOR LOGIN JÁ VERIFICA E NÃO DEIXA CHEGAR VAZIO
             login = login.Trim().ToLowerInvariant();
+            var agora = DateTime.Now;
 
-            var usuario = await _repository.ObterPorLoginAsync(login);
+            var usuario = await _usuarios.ObterPorLoginAsync(login);
 
-            if (usuario == null)
+            if (usuario is null)
             {
-                _logger.LogWarning("Tentativa de acessar com um usuário inexistente: {login}", login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+                _logger.LogWarning("Tentativa de acessar com usuário inexistente: {Login}", login);
+                throw CredenciaisInvalidas();
             }
-               
-            ValidarUsuario(usuario, login);
 
-            if (!_passwordHash.Verify(senha, usuario.Senha.Hash)) 
+            if (!usuario.PodeAutenticar(agora))
             {
-                await RegistrarFalha(usuario, login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+                _logger.LogWarning("Tentativa de autenticação inválida para {Login}", login);
+                throw CredenciaisInvalidas();
+            }
+
+            if (!_passwordHash.Verify(senha, usuario.Senha.Hash))
+            {
+                usuario.RegistrarFalhaLogin(agora);
+                await _usuarios.AtualizarAsync(usuario);
+                await _uow.SaveChangesAsync();
+
+                _logger.LogWarning("Senha incorreta para {Login}", login);
+                throw CredenciaisInvalidas();
             }
 
             usuario.ResetarTentativasLogin();
+            await _usuarios.AtualizarAsync(usuario);
 
-            await _repository.Atualizar(usuario);
+            var accessToken = _token.GenerateToken(usuario);
+            var refreshToken = _token.GenerateRefreshToken();
 
-            var response = await GerarTokensAsync(usuario);
-
-            _logger.LogInformation("Login realizado e tokens criados {id}", usuario.Id);
-
-            return response;
-        }
-
-        private void ValidarUsuario(Usuario usuario, string login)
-        {
-            var agora = DateTime.Now;
-
-            if (!usuario.Ativado)
-            {
-                _logger.LogWarning("Tentativa de logar com um usuário inátivo {login}",login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
-            }
-
-            if (!usuario.PodeLogar(agora))
-            {
-                _logger.LogWarning("Tentativa de logar com um usuário bloqueado {login}", login);
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
-            }
-        }
-
-        private async Task RegistrarFalha(Usuario usuario, string login)
-        {
-            var agora = DateTime.Now;
-
-            usuario.RegistrarFalhaLogin(agora);
-            await _repository.Atualizar(usuario);
-            await _uow.SaveChangesAsync();
-            _logger.LogWarning("Tentativa de logar com uma senha incorreta {login}", login);
-        }
-
-        private async Task<DTOAuthResponse> GerarTokensAsync(Usuario usuario)
-        {
-            var access_token = _token.GenerateToken(usuario);
-            var refresh = _token.GenerateRefreshToken();
-
-            await _refresh.SaveAsync(usuario.Id, refresh, DateTime.UtcNow.AddDays(7));
+            await _refresh.SaveAsync(
+                usuario.Id,
+                refreshToken,
+                DateTime.UtcNow.AddDays(7));
 
             await _uow.SaveChangesAsync();
-
 
             return new DTOAuthResponse
             {
-                accessToken = access_token,
-                refreshToken = refresh
+                accessToken = accessToken,
+                refreshToken = refreshToken
             };
         }
+
+        private static AuthenticationException CredenciaisInvalidas() =>
+            new("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
     }
 }

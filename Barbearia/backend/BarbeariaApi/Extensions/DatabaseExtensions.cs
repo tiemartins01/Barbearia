@@ -1,4 +1,4 @@
-﻿using BarbeariaCore.Infrastructure.Data;
+﻿using BarbeariaInfrastructure.Data;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaInfrastructure.Data.DatabaseErrors.Providers;
 using Microsoft.EntityFrameworkCore;

@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Text.Json;
 using BarbeariaInfrastructure.Security;
+using BarbeariaInfrastructure.Data.Observability.Audit;
 
-namespace BarbeariaCore.Infrastructure.Data;
+namespace BarbeariaInfrastructure.Data;
 
 public sealed class AppDbContext : DbContext
 {

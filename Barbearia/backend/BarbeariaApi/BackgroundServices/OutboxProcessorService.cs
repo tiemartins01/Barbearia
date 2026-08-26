@@ -1,4 +1,4 @@
-using BarbeariaCore.Infrastructure.Data;
+using BarbeariaInfrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
 namespace Barbearia.BackgroundServices;

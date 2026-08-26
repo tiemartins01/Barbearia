@@ -1,6 +1,6 @@
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Models;
-using BarbeariaCore.Infrastructure.Data;
+using BarbeariaInfrastructure.Data;
 using BarbeariaInfrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 

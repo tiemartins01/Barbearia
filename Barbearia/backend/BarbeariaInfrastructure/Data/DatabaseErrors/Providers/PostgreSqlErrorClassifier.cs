@@ -9,6 +9,9 @@ public sealed class PostgreSqlErrorClassifier
         Exception exception,
         string? constraintName = null)
     {
+        if (exception is not DbUpdateException dbException)
+            return false;
+
         if (exception.InnerException
             is not PostgresException postgres)
         {

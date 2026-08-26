@@ -1,6 +1,7 @@
 ﻿using BarbeariaCore.Application.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using MySqlConnector;
+using Npgsql;
 
 namespace BarbeariaInfrastructure.Data.DatabaseErrors.Providers;
 
@@ -11,6 +12,9 @@ public sealed class MySqlErrorClassifier
         Exception exception,
         string? constraintName = null)
     {
+        if (exception is not DbUpdateException dbException)
+            return false;
+
         if (exception.InnerException is not MySqlException mysql)
             return false;
 

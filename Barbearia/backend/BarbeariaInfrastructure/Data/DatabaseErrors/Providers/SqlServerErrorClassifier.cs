@@ -10,6 +10,10 @@ namespace BarbeariaInfrastructure.Data.DatabaseErrors.Providers
             Exception exception,
             string? constraintName = null)
         {
+
+            if (exception is not DbUpdateException dbException)
+                return false;
+
             if (exception.InnerException is not SqlException sql)
                 return false;
 

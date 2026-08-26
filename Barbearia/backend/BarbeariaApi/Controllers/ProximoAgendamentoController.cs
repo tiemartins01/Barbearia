@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using BarbeariaCore.Domain.Exceptions;
 using ValidationException = BarbeariaCore.Exceptions.ValidationException;
+using BarbeariaCore.Application.Interfaces.Services;
 
 namespace BarbeariaApi.Controllers
 {

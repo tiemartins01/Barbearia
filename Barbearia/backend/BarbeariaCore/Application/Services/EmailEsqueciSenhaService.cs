@@ -1,21 +1,27 @@
-﻿using BarbeariaCore.Application.Interfaces;
-using Microsoft.Extensions.Logging;
+using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.Application.Interfaces.Services;
 using BarbeariaCore.Security;
+using Microsoft.Extensions.Logging;
 
 namespace BarbeariaCore.Application.Services
 {
-    public class EmailEsqueciSenhaService : IEmailEsqueciSenhaService
+    public sealed class EmailEsqueciSenhaService : IEmailEsqueciSenhaService
     {
-        private readonly IEmailEsqueciSenhaRepository _repository;
+        private readonly IUsuarioRepository _usuarios;
         private readonly IEnviarEmail _enviar;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<EmailEsqueciSenhaService> _logger;
-        public EmailEsqueciSenhaService(IEmailEsqueciSenhaRepository repository, IEnviarEmail enviar, IUnitOfWork uow, ILogger<EmailEsqueciSenhaService> logger)
+
+        public EmailEsqueciSenhaService(
+            IUsuarioRepository usuarios,
+            IEnviarEmail enviar,
+            IUnitOfWork uow,
+            ILogger<EmailEsqueciSenhaService> logger)
         {
-            _repository = repository;
+            _usuarios = usuarios;
             _enviar = enviar;
             _uow = uow;
-            _logger = logger;
             _logger = logger;
         }
 
@@ -23,37 +29,37 @@ namespace BarbeariaCore.Application.Services
         {
             email = email.Trim().ToLowerInvariant();
 
-            var usuario = await _repository.BuscarUsuarioPorEmailAsync (email);
+            var usuario = await _usuarios.ObterPorEmailAsync(email);
 
-            if (usuario == null)
+            if (usuario is null)
             {
-                _logger.LogWarning(
-      "Tentativa de recuperação para e-mail inexistente.");
-
+                _logger.LogWarning("Tentativa de recuperação para e-mail inexistente.");
                 return;
             }
 
-            var codigo =  CodeGenerator.GerarCod();
-            
-            usuario.GerarCodigo(codigo);
+            var agora = DateTime.Now;
+            var codigo = CodeGenerator.GerarCod();
 
-            await _repository.AtualizarAsync(usuario);
+            usuario.GerarCodigo(codigo, agora);
 
+            await _usuarios.AtualizarAsync(usuario);
             await _uow.SaveChangesAsync();
 
-            string mensagem = $"""
+            var mensagem = $"""
                 <p>Olá {usuario.Nome},</p>
-
                 <p>Percebemos que você solicitou o código para troca de senha.</p>
+                <p>Código: <span style="font-size:16px;">{codigo}</span></p>
+                <p style="font-size:8px">Caso não tenha sido você, descarte este e-mail.</p>
+                """;
 
-                <p>Código: <span style="font-size:16px";> {codigo.ToString()} </span></p>
+            await _enviar.EnviarEmailAsync(
+                usuario.Email.Valor,
+                "Troca de senha",
+                mensagem);
 
-                <p style="font-size:8px">Caso não tenha sido você que tenha realizado a troca, favor descartar o e-mail</p>
-                """;  
-            await _enviar.EnviarEmailAsync(usuario.Email.Valor, "Troca de senha",mensagem);
-            _logger.LogInformation("Código enviado com sucesso para o e-mail {email}", email);
-            _logger.LogWarning("Tentativa de recuperação para e-mail inexistente.");
+            _logger.LogInformation(
+                "Código de recuperação enviado para {Email}",
+                email);
         }
-
     }
 }

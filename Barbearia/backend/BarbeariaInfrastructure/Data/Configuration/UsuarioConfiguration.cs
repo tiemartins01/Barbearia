@@ -41,7 +41,7 @@ namespace BarbeariaInfrastructure.Configuration
                 email.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_email");
             });
 
-            e.OwnsOne(x => x.Phone, phone =>
+            e.OwnsOne(x => x.Numero, phone =>
             {
                 phone.Property(p => p.Valor).HasColumnName("numero").IsRequired();
                 phone.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_telefone");

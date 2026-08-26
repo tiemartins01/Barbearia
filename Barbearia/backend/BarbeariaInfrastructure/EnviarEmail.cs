@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using System.Net.Mail;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaInfrastructure
 {
     public class EnviarEmail : IEnviarEmail
     {

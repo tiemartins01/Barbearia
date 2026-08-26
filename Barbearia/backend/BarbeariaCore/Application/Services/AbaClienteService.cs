@@ -1,183 +1,194 @@
-﻿using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Interfaces.Queries;
+using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.Application.Interfaces.Services;
 using BarbeariaCore.Domain.Entities;
-using BarbeariaCore.Domain.Enum;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.ValueObjects;
 using BarbeariaCore.Exceptions;
 using Microsoft.Extensions.Logging;
 using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
 using ForbiddenException = BarbeariaCore.Exceptions.ForbiddenException;
-using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
 namespace BarbeariaCore.Application.Services
 {
-    public class AbaClienteService : IAbaClienteService
+    public sealed class AbaClienteService : IAbaClienteService
     {
-        private readonly IAbaClienteRepository _repository;
+        private readonly IUsuarioRepository _usuarios;
+        private readonly IAgendamentoRepository _agendamentos;
+        private readonly IAvaliacaoRepository _avaliacoes;
+        private readonly IBarbeirosQuery _barbeirosQuery;
+        private readonly IHistoricoClienteQuery _historicoQuery;
+        private readonly IDadosPessoaisQuery _dadosPessoaisQuery;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<AbaClienteService> _logger;
         private readonly IPasswordHash _passwordHash;
 
-        public AbaClienteService(IAbaClienteRepository repository, IUnitOfWork uow, ILogger<AbaClienteService> logger, IPasswordHash password)
+        public AbaClienteService(
+            IUsuarioRepository usuarios,
+            IAgendamentoRepository agendamentos,
+            IAvaliacaoRepository avaliacoes,
+            IBarbeirosQuery barbeirosQuery,
+            IHistoricoClienteQuery historicoQuery,
+            IDadosPessoaisQuery dadosPessoaisQuery,
+            IUnitOfWork uow,
+            ILogger<AbaClienteService> logger,
+            IPasswordHash passwordHash)
         {
-            _repository = repository;
+            _usuarios = usuarios;
+            _agendamentos = agendamentos;
+            _avaliacoes = avaliacoes;
+            _barbeirosQuery = barbeirosQuery;
+            _historicoQuery = historicoQuery;
+            _dadosPessoaisQuery = dadosPessoaisQuery;
             _uow = uow;
             _logger = logger;
-            _passwordHash = password;
+            _passwordHash = passwordHash;
         }
 
-        // APENAS PARA RETORNAR OS BARBEIROS CADASTRADOS E ATIVOS
         public async Task<List<DTOBarbeiro>> BuscarBarbeiros()
         {
-            return await _repository.BuscarTodosBarbeiros();
+            var barbeiros = await _barbeirosQuery.ListarAtivosAsync();
+            return barbeiros.ToList();
         }
 
-        // APENAS PARA RETORNAR O HISTÓRICO DOS CLIENTES
-        public async Task<List<DTOHistorico>> HistoricoCliente(int idCliente, int page, int pageSize)
+        public async Task<List<DTOHistorico>> HistoricoCliente(
+            int idCliente,
+            int page,
+            int pageSize)
         {
-            return await _repository.Historico(idCliente, page, pageSize);
+            var historico =
+                await _historicoQuery.ConsultarAsync(
+                    idCliente,
+                    page,
+                    pageSize);
+
+            return historico.ToList();
         }
 
-        // APENAS PARA RETORNAR OS DADOS PESSOAIS DO CLIENTE
-        public async Task<DTODadosPessoais> DadosPessoaisAsync(int idCliente)
-        {
-            return await _repository.DadosPessoais(idCliente);
-        }
+        public Task<DTODadosPessoais?> DadosPessoaisAsync(int idCliente) =>
+            _dadosPessoaisQuery.ConsultarAsync(idCliente);
 
-        // PEGA OS HORÁRIOS VÁLIDOS
         public async Task<DTOHorarioDetalhes?> InfoHorario(int id)
         {
-            var horario = await _repository.HorarioValidoAsync(id);
-            if (horario is null)
+            var agendamento = await _agendamentos.ObterPorIdAsync(id);
+
+            if (agendamento is null)
                 return null;
 
-            return new DTOHorarioDetalhes
-            {
-                Id = horario.Id,
-                IdCliente = horario.ClienteId,
-                IdBarbeiro = horario.BarbeiroId,
-                IdServico = horario.ServicoId,
-                Horario = horario.DataAgendamento,
-                Status = horario.Status
-            };
+            return MapearHorario(agendamento);
         }
 
-        public async Task<DTOHorarioDetalhes?> InfoHorarioDoCliente(int id, int userId)
+        public async Task<DTOHorarioDetalhes?> InfoHorarioDoCliente(
+            int id,
+            int userId)
         {
-            var horario = await _repository.HorarioValidoAsync(id);
-            if (horario is null) return null;
+            var agendamento = await _agendamentos.ObterPorIdAsync(id);
 
-            if (horario.ClienteId != userId)
-                throw new ForbiddenException("RESOURCE_ACCESS_DENIED", "Você não possui acesso a este agendamento.");
+            if (agendamento is null)
+                return null;
 
-            return new DTOHorarioDetalhes
-            {
-                Id = horario.Id,
-                IdCliente = horario.ClienteId,
-                IdBarbeiro = horario.BarbeiroId,
-                IdServico = horario.ServicoId,
-                Horario = horario.DataAgendamento,
-                Status = horario.Status
-            };
+            if (agendamento.ClienteId != userId)
+                throw new ForbiddenException(
+                    "RESOURCE_ACCESS_DENIED",
+                    "Você não possui acesso a este agendamento.");
+
+            return MapearHorario(agendamento);
         }
 
-        // ALTERANDO OS DADOS PESSOAIS 
         public async Task AlterandoDados(DTOAlterandoDados dados)
         {
-            var usuario = await _repository.GetUsuarioAsync(dados.Id);
+            var usuario = await _usuarios.ObterPorIdAsync(dados.Id);
 
             if (usuario is null)
-                throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+                throw new AuthenticationException(
+                    "AUTH_INVALID_CREDENTIALS",
+                    "Credencial inválida!");
 
-            usuario.AlterarDados(dados.Nome,
-            new Email(dados.Email),
-            new Telefone(dados.Telefone),
-            new Cpf(dados.Cpf));
+            usuario.AlterarDados(
+                dados.Nome,
+                new Email(dados.Email),
+                new Telefone(dados.Telefone),
+                new Cpf(dados.Cpf));
 
-
-            if (!string.IsNullOrEmpty(dados.NovaSenha))
+            if (!string.IsNullOrWhiteSpace(dados.NovaSenha))
             {
                 PoliticaSenha.Validar(dados.NovaSenha);
 
-                if (string.IsNullOrEmpty(dados.SenhaAntiga) || !_passwordHash.Verify(dados.SenhaAntiga, usuario.Senha.Hash))
-                    throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+                if (string.IsNullOrWhiteSpace(dados.SenhaAntiga) ||
+                    !_passwordHash.Verify(
+                        dados.SenhaAntiga,
+                        usuario.Senha.Hash))
+                {
+                    throw new AuthenticationException(
+                        "AUTH_INVALID_CREDENTIALS",
+                        "Credencial inválida!");
+                }
 
                 var senhaHash = _passwordHash.Hash(dados.NovaSenha);
-
                 var senhaDominio = Senha.DeHash(senhaHash);
 
-                usuario.AlterarSenha(senhaDominio);
+                usuario.AlterarSenhaPerfil(senhaDominio);
             }
+
+            await _usuarios.AtualizarAsync(usuario);
             await _uow.SaveChangesAsync();
         }
 
-        // REALIZAR A AVALIAÇÃO
-        public async Task RealizandoAvaliacaoAsync(DTOAvaliacao avaliacao, int id_cliente)
+        public async Task RealizandoAvaliacaoAsync(
+            DTOAvaliacao avaliacao,
+            int idCliente)
         {
-            await InformacoesFora(avaliacao, id_cliente);
+            var agendamento =
+                await _agendamentos.ObterPorIdAsync(
+                    avaliacao.AgendamentoId);
 
-            var nova_avaliacao = new Avaliacao
-                (
-                    avaliacao.Id_barbeiro,
-                    id_cliente,
-                    avaliacao.Id_horario,
-                    avaliacao.Nota,
-                    avaliacao.Comentario,
-                    avaliacao.Horario,
-                    avaliacao.Id_servico
-                );
+            if (agendamento is null)
+                throw new NotFoundException(
+                    "APPOINTMENT_NOT_FOUND",
+                    "Agendamento não encontrado.");
 
-            //if (!nova_avaliacao.HorarioMenor(avaliacao.Horario))
-            //{
-            //    _logger.LogWarning("{} tentou avaliar antes de concluir o horário", id_cliente);
-            //    throw new ConflictException("EVALUATION_NOT_ALLOWED", "A avaliação não pode ser realizada neste momento.");
-            //}
+            if (agendamento.ClienteId != idCliente)
+                throw new ForbiddenException(
+                    "RESOURCE_ACCESS_DENIED",
+                    "Você não possui acesso a este agendamento.");
 
-            await _repository.RealizarAvaliacaoAsync(nova_avaliacao);
-            var horarioParaAtualizar = await _repository.BuscarHorarioParaAtualizarAsync(avaliacao.Id_horario);
-            if (horarioParaAtualizar != null)
-                horarioParaAtualizar.MarcarComoAvaliado();
+            if (await _avaliacoes.ExisteParaAgendamentoAsync(agendamento.Id))
+                throw new ConflictException(
+                    "REVIEW_ALREADY_EXISTS",
+                    "Este atendimento já possui avaliação.");
 
+            // Autoridade do status fica no Aggregate.
+            agendamento.MarcarComoAvaliado();
+
+            var novaAvaliacao = new Avaliacao(
+                agendamento.BarbeiroId,
+                agendamento.ClienteId,
+                agendamento.Id,
+                avaliacao.Nota,
+                avaliacao.Comentario,
+                agendamento.DataAgendamento,
+                agendamento.ServicoId);
+
+            await _avaliacoes.AdicionarAsync(novaAvaliacao);
             await _uow.SaveChangesAsync();
 
-            _logger.LogInformation("Avaliacao correta feita no horário de id: {}", avaliacao.Id_horario);
+            _logger.LogInformation(
+                "Avaliação realizada. Cliente={ClienteId} Agendamento={AgendamentoId}",
+                idCliente,
+                agendamento.Id);
         }
 
-        // VERIFICA QUAL INFORMAÇÃO NÃO ESTÁ DE ACORDO
-        private async Task InformacoesFora(DTOAvaliacao avaliacao, int id_cliente)
-        {
-            var horario = await _repository.HorarioValidoAsync(avaliacao.Id_horario);
-
-            if (horario == null)
+        private static DTOHorarioDetalhes MapearHorario(Agendamento agendamento) =>
+            new()
             {
-                _logger.LogWarning("Informações inexistente!");
-                throw new NotFoundException("APPOINTMENT_NOT_FOUND", "Agendamento não encontrado.");
-            }
-
-            if (horario.Status != StatusAgendamento.Concluido)
-            {
-                _logger.LogWarning("Status diferente de concluido no id {}", avaliacao.Id);
-                throw new ConflictException("APPOINTMENT_NOT_COMPLETED", "Status indisponível!");
-            }
-
-            if (horario.ClienteId != id_cliente)
-            {
-                _logger.LogWarning("Id do cliente não é o mesmo de logado! Id: {}", id_cliente);
-                throw new ForbiddenException("RESOURCE_ACCESS_DENIED","Você não possui acesso a este agendamento.");
-            }
-
-            if (horario.BarbeiroId != avaliacao.Id_barbeiro)
-            {
-                _logger.LogWarning("Id do barbeiro não é o mesmo do horário! Id: {}", avaliacao.Id_barbeiro);
-                throw new ValidationException("APPOINTMENT_BARBER_MISMATCH","O barbeiro informado não corresponde ao agendamento.");
-            }
-
-            if (horario.ServicoId != avaliacao.Id_servico)
-            {
-                _logger.LogWarning("Id do serviço não é o mesmo do horário! Id: {}", avaliacao.Id_servico);
-                throw new ValidationException("APPOINTMENT_SERVICE_MISMATCH","O serviço informado não corresponde ao agendamento.");
-            }
-        }
+                Id = agendamento.Id,
+                IdCliente = agendamento.ClienteId,
+                IdBarbeiro = agendamento.BarbeiroId,
+                IdServico = agendamento.ServicoId,
+                Horario = agendamento.DataAgendamento,
+                Status = agendamento.Status
+            };
     }
 }

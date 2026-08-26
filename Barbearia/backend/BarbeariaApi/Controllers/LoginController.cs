@@ -1,6 +1,7 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.Application.Interfaces.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;

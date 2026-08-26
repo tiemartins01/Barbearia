@@ -8,8 +8,10 @@
 
   <ItemGroup>
     <Folder Include="Application\DTOs\" />
+    <Folder Include="Application\Interfaces\Repositories\" />
+    <Folder Include="Application\Interfaces\Queries\" />
+    <Folder Include="Application\Interfaces\Services\" />
     <Folder Include="Application\Validation\" />
-    <Folder Include="Application\Services\" />
     <Folder Include="Domain\Enum\" />
   </ItemGroup>
 

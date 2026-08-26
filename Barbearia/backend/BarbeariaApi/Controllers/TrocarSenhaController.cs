@@ -3,6 +3,7 @@ using BarbeariaCore.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using BarbeariaCore.Application.Interfaces.Services;
 
 namespace BarbeariaApi.Controllers
 {
