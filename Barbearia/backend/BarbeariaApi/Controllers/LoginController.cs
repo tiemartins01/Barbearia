@@ -1,12 +1,10 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.UseCases.Autenticacao;
+using BarbeariaCore.UseCases.Security;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using System;
-using System.Security.Claims;
 
 namespace BarbeariaApi.Controllers
 {
@@ -14,8 +12,12 @@ namespace BarbeariaApi.Controllers
     [Route("login")]
     public class LoginController : ControllerBase
     {
-        private readonly ILoginService _loginService;
-        private readonly IRefreshTokenService _refresh;
+        private readonly RealizarLogin _service;
+        private readonly ListarSessoes _listasessoes;
+        private readonly RevogarSessao _revogarsessao;
+        private readonly RevogarTodasSessoes _revogartodassessoes;
+        private readonly RevogarToken _revogartoken;
+        private readonly RenovarToken _renovartoken;
         private readonly ICurrentUser _user;
         private const string AccessCookie = "access-token";
         private const string RefreshCookie = "refresh-token";
@@ -24,12 +26,18 @@ namespace BarbeariaApi.Controllers
         private static readonly TimeSpan RefreshExpiration =
             TimeSpan.FromDays(7);
         private readonly ILogger<LoginController> _logger;
-        public LoginController(ILoginService loginService, IRefreshTokenService refresh, ICurrentUser user, ILogger<LoginController> logger)
+        public LoginController(RealizarLogin service, ICurrentUser user, ILogger<LoginController> logger,
+            ListarSessoes listasessoes, RevogarSessao revogarsessao, RevogarTodasSessoes revogartodassessoes,
+            RevogarToken revogartoken, RenovarToken renovartoken)
         {
-            _loginService = loginService;
-            _refresh = refresh;
+            _service = service;
             _user = user;
             _logger = logger;
+            _listasessoes = listasessoes;
+            _renovartoken = renovartoken;
+            _revogarsessao = revogarsessao;
+            _revogartodassessoes = revogartodassessoes;
+            _revogartoken = revogartoken;
         }
 
         [Authorize]
@@ -72,7 +80,7 @@ namespace BarbeariaApi.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> Login([FromBody] DTOLoginUsuario request)
         {
-            var resultado = await _loginService.RealizarLoginAsync(request.Nome, request.Senha);
+            var resultado = await _service.ExecutarAsync(request.Nome, request.Senha);
 
             SalvarCookies(resultado);
 
@@ -91,7 +99,7 @@ namespace BarbeariaApi.Controllers
             {
                 try
                 {
-                    await _refresh.RevokeTokenAsync(refresh);
+                    await _revogartoken.ExecutarAsync(refresh);
                 }
                 catch (Exception ex)
                 {
@@ -119,7 +127,7 @@ namespace BarbeariaApi.Controllers
             if (string.IsNullOrWhiteSpace(refreshToken))
                 return Unauthorized();
 
-            var resultado = await _refresh.GerarRefreshAsync(refreshToken);
+            var resultado = await _renovartoken.ExecutarAsync(refreshToken);
 
             //Response.Cookies.Append("teste", "123");
 
@@ -134,7 +142,7 @@ namespace BarbeariaApi.Controllers
         public async Task<IActionResult> Sessions()
         {
             var current = Request.Cookies[RefreshCookie];
-            var sessions = await _refresh.ListarSessoesAsync(_user.UserId, current);
+            var sessions = await _listasessoes.ExecutarAsync(_user.UserId, current);
             return Ok(sessions);
         }
 
@@ -144,7 +152,7 @@ namespace BarbeariaApi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RevokeAllSessions()
         {
-            await _refresh.RevogarTodasAsync(_user.UserId);
+            await _revogartodassessoes.ExecutarAsync(_user.UserId);
             Response.Cookies.Delete(RefreshCookie, CookieOptionsRefresh());
             Response.Cookies.Delete(AccessCookie, CookieOptionsAccess());
             return NoContent();
@@ -157,7 +165,7 @@ namespace BarbeariaApi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RevokeSession([FromRoute] int sessionId)
         {
-            await _refresh.RevogarSessaoAsync(_user.UserId, sessionId);
+            await _revogarsessao.ExecutarAsync(_user.UserId, sessionId);
             return NoContent();
         }
 

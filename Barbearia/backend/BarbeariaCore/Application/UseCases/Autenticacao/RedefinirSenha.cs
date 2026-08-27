@@ -1,22 +1,21 @@
-using BarbeariaCore.Application.DTOs;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Interfaces.Services;
-using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.ValueObjects;
 using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
 using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaCore.UseCases.Autenticacao
 {
-    public sealed class TrocaSenhaService : ITrocaSenhaService
+    public sealed class RedefinirSenha
     {
+
         private readonly IUsuarioRepository _usuarios;
         private readonly IUnitOfWork _uow;
         private readonly IPasswordHash _passwordHash;
 
-        public TrocaSenhaService(
+        public RedefinirSenha(
             IUsuarioRepository usuarios,
             IUnitOfWork uow,
             IPasswordHash passwordHash)
@@ -26,7 +25,7 @@ namespace BarbeariaCore.Application.Services
             _passwordHash = passwordHash;
         }
 
-        public async Task<DTOResposta> RealizarTrocaSenha(
+        public async Task<DTOResposta> ExecutarAsync(
             string codigo,
             string email,
             string senha,
@@ -79,5 +78,6 @@ namespace BarbeariaCore.Application.Services
                 Mensagem = "Senha alterada!"
             };
         }
+
     }
 }

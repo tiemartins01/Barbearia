@@ -7,10 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="UseCases\**" />
+    <EmbeddedResource Remove="UseCases\**" />
+    <None Remove="UseCases\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Application\DTOs\" />
     <Folder Include="Application\Interfaces\Repositories\" />
     <Folder Include="Application\Interfaces\Queries\" />
-    <Folder Include="Application\Interfaces\Services\" />
     <Folder Include="Application\Validation\" />
     <Folder Include="Domain\Enum\" />
   </ItemGroup>

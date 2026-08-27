@@ -1,59 +1,36 @@
-using BarbeariaCore.Application.DTOs;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Exceptions;
 using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Application.Interfaces.Queries;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Interfaces.Services;
 using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Exceptions;
 using Microsoft.Extensions.Logging;
-using ValidationException = BarbeariaCore.Exceptions.ValidationException;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaCore.UseCases.Agendamentos
 {
-    public sealed class ProximoAtendimentoService : IProximoAtendimentoService
+    public sealed class CriarAgendamento
     {
+
         private readonly IAgendamentoRepository _agendamentos;
         private readonly IBarbeiroRepository _barbeiros;
         private readonly IServicoRepository _servicos;
-        private readonly IProximoAgendamentoQuery _proximoAgendamentoQuery;
-        private readonly IAgendaDisponibilidadeQuery _agendaQuery;
         private readonly IUnitOfWork _uow;
-        private readonly ILogger<ProximoAtendimentoService> _logger;
+        private readonly ILogger<CriarAgendamento> _logger;
 
-        public ProximoAtendimentoService(
-            IAgendamentoRepository agendamentos,
-            IBarbeiroRepository barbeiros,
-            IServicoRepository servicos,
-            IProximoAgendamentoQuery proximoAgendamentoQuery,
-            IAgendaDisponibilidadeQuery agendaQuery,
-            IUnitOfWork uow,
-            ILogger<ProximoAtendimentoService> logger)
+        public CriarAgendamento (IAgendamentoRepository agendamentos, 
+            IBarbeiroRepository barbeiros, IServicoRepository servicos, 
+            IUnitOfWork uow, ILogger<CriarAgendamento> logger)
         {
             _agendamentos = agendamentos;
             _barbeiros = barbeiros;
             _servicos = servicos;
-            _proximoAgendamentoQuery = proximoAgendamentoQuery;
-            _agendaQuery = agendaQuery;
             _uow = uow;
             _logger = logger;
         }
 
-        public async Task<DTOProximoAgendamento?> ObterProximoAtendimentoAsync(int idUsuario)
-        {
-            if (idUsuario <= 0)
-                throw new ValidationException(
-                    "USER_ID_INVALID",
-                    "O identificador do usuário é inválido.");
-
-            return await _proximoAgendamentoQuery.ObterAsync(
-                idUsuario,
-                DateTime.Now);
-        }
-
-        public async Task<DTOResposta> AgendarHorarioAsync(
+        public async Task<DTOResposta> ExecutarAsync(
             int idBarbeiro,
             int idUsuario,
             int idServico,
@@ -153,85 +130,23 @@ namespace BarbeariaCore.Application.Services
             }
         }
 
-        public async Task<IReadOnlyCollection<TimeOnly>> ObterHorariosDisponiveisAsync(
-            int idBarbeiro,
-            int idServico,
-            DateOnly data)
-        {
-            if (idBarbeiro <= 0)
-                throw new ValidationException(
-                    "BARBER_ID_INVALID",
-                    "O identificador do barbeiro é inválido.");
-
-            if (idServico <= 0)
-                throw new ValidationException(
-                    "SERVICE_ID_INVALID",
-                    "O identificador do serviço é inválido.");
-
-            var agora = DateTime.Now;
-
-            PoliticaAgenda.ValidarDataNaoPassada(
-                data,
-                DateOnly.FromDateTime(agora));
-
-            if (!await _barbeiros.ExisteAtivoAsync(idBarbeiro))
-                throw new NotFoundException(
-                    "BARBER_NOT_FOUND",
-                    "Barbeiro não encontrado.");
-
-            var servico = await _servicos.ObterAtivoPorIdAsync(idServico);
-
-            if (servico is null)
-                throw new NotFoundException(
-                    "SERVICE_NOT_FOUND",
-                    "Serviço não encontrado.");
-
-            var periodosOcupados =
-                await _agendaQuery.BuscarPeriodosOcupadosAsync(
-                    idBarbeiro,
-                    data);
-
-            var disponiveis = new List<TimeOnly>();
-
-            foreach (var horarioGrade in PoliticaAgenda.GerarGradeHorario())
-            {
-                var inicio = data.ToDateTime(horarioGrade);
-
-                if (inicio <= agora)
-                    continue;
-
-                if (!PoliticaAgenda.CabeNoExpediente(inicio, servico.Duracao))
-                    continue;
-
-                var fim = inicio.AddMinutes(servico.Duracao);
-
-                var conflito = periodosOcupados.Any(periodo =>
-                    PoliticaAgenda.ExisteSobreposicao(
-                        inicio,
-                        fim,
-                        periodo.Inicio,
-                        periodo.Fim));
-
-                if (!conflito)
-                    disponiveis.Add(horarioGrade);
-            }
-
-            return disponiveis;
-        }
-
         private static void ValidarIds(
             int idBarbeiro,
             int idUsuario,
             int idServico)
         {
             if (idBarbeiro <= 0)
-                throw new ValidationException("BARBER_ID_INVALID", "O identificador do barbeiro é inválido.");
+                throw new ValidationException("BARBER_ID_INVALID", 
+                    "O identificador do barbeiro é inválido.");
 
             if (idUsuario <= 0)
-                throw new ValidationException("USER_ID_INVALID", "O identificador do usuário é inválido.");
+                throw new ValidationException("USER_ID_INVALID", 
+                    "O identificador do usuário é inválido.");
 
             if (idServico <= 0)
-                throw new ValidationException("SERVICE_ID_INVALID", "O identificador do serviço é inválido.");
+                throw new ValidationException("SERVICE_ID_INVALID",
+                    "O identificador do serviço é inválido.");
         }
+
     }
 }

@@ -1,7 +1,6 @@
-using BarbeariaCore.Application.DTOs;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Interfaces.Services;
 using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
 using BarbeariaCore.Domain.Exceptions;
@@ -9,35 +8,32 @@ using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaCore.UseCases.Autenticacao
 {
-    public sealed class NovoClienteService : INovoClienteService
+    public sealed class CadastrarCliente
     {
         private readonly IUsuarioRepository _usuarios;
         private readonly IUnitOfWork _uow;
-        private readonly ILogger<NovoClienteService> _logger;
+        private readonly ILogger<CadastrarCliente> _logger;
         private readonly IPasswordHash _hash;
 
-        public NovoClienteService(
-            IUsuarioRepository usuarios,
-            IUnitOfWork uow,
-            ILogger<NovoClienteService> logger,
-            IPasswordHash hash)
-        {
-            _usuarios = usuarios;
+        public CadastrarCliente(IUsuarioRepository usuarios, IUnitOfWork uow,
+            ILogger<CadastrarCliente> logger, IPasswordHash hash) 
+        { 
             _uow = uow;
-            _logger = logger;
+            _logger = logger;   
             _hash = hash;
+            _usuarios = usuarios;
         }
 
-        public async Task<DTOResposta> CadastrarAsync(
-            string nome,
-            string email,
-            string telefone,
-            string cpf,
-            string login,
-            string senha,
-            string foto)
+        public async Task<DTOResposta> ExecutarAsync(
+           string nome,
+           string email,
+           string telefone,
+           string cpf,
+           string login,
+           string senha,
+           string foto)
         {
             nome = nome.Trim();
             login = login.Trim().ToLowerInvariant();
@@ -105,5 +101,6 @@ namespace BarbeariaCore.Application.Services
             if (await _usuarios.ObterPorLoginAsync(login) is not null)
                 throw new DomainException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado.");
         }
+
     }
 }

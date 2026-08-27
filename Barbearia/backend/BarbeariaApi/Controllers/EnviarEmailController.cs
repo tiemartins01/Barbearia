@@ -3,7 +3,7 @@ using BarbeariaCore.Exceptions;
 using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.UseCases.Autenticacao;
 
 namespace BarbeariaApi.Controllers
 {
@@ -12,9 +12,9 @@ namespace BarbeariaApi.Controllers
     public class EnviarEmailController : ControllerBase
     {
 
-        private readonly IEmailEsqueciSenhaService _service;
+        private readonly SolicitarRecuperacaoSenha _service;
 
-        public EnviarEmailController(IEmailEsqueciSenhaService service)
+        public EnviarEmailController(SolicitarRecuperacaoSenha service)
         {
             _service = service;
         }
@@ -26,7 +26,7 @@ namespace BarbeariaApi.Controllers
         public async Task<IActionResult> EnviarEmail([FromBody] DTOEnviarEmail request)
         {
                                   
-            await _service.EnviarEmailAsync(request.Email);
+            await _service.ExecutarAsync(request.Email);
 
             return Ok(new
             {

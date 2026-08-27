@@ -1,5 +1,5 @@
-using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.UseCases.Servicos;
+using BarbeariaInfrastructure.Queries;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,18 +10,18 @@ namespace BarbeariaApi.Controllers
     public class ServicosAtivosController : ControllerBase
     {
 
-        private readonly IServicosService _service;
+        private readonly ListarServicosAtivos _service;
 
-        public ServicosAtivosController(IServicosService service)
+        public ServicosAtivosController(ListarServicosAtivos service)
         {
             _service = service;
         }
-        [Authorize(Roles = "Cliente")]
+        [Authorize(Policy = "ClientOnly")]
         [HttpGet("ativos")]
         [HttpGet("~/api/v1/services")]
         public async Task<IActionResult> ServicosAtivos()
         {
-            var servicos = await _service.CarregarServicosAtivos();
+            var servicos = await _service.ExecutarAsync();
 
             return Ok(servicos);
         }

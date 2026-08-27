@@ -1,28 +1,27 @@
-using BarbeariaCore.Application.DTOs;
+﻿using BarbeariaCore.Application.DTOs;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Interfaces.Services;
-using BarbeariaCore.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using AuthenticationException = BarbeariaCore.Exceptions.AuthenticationException;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaCore.UseCases.Autenticacao
 {
-    public sealed class LoginService : ILoginService
+    public sealed class RealizarLogin
     {
+
         private readonly IUsuarioRepository _usuarios;
         private readonly ITokenService _token;
         private readonly IRefreshRepository _refresh;
         private readonly IUnitOfWork _uow;
-        private readonly ILogger<LoginService> _logger;
+        private readonly ILogger<RealizarLogin> _logger;
         private readonly IPasswordHash _passwordHash;
 
-        public LoginService(
+        public RealizarLogin(
             IUsuarioRepository usuarios,
             ITokenService token,
             IRefreshRepository refresh,
             IUnitOfWork uow,
-            ILogger<LoginService> logger,
+            ILogger<RealizarLogin> logger,
             IPasswordHash passwordHash)
         {
             _usuarios = usuarios;
@@ -33,7 +32,7 @@ namespace BarbeariaCore.Application.Services
             _passwordHash = passwordHash;
         }
 
-        public async Task<DTOAuthResponse> RealizarLoginAsync(string login, string senha)
+        public async Task<DTOAuthResponse> ExecutarAsync(string login, string senha)
         {
             login = login.Trim().ToLowerInvariant();
             var agora = DateTime.Now;
@@ -84,5 +83,6 @@ namespace BarbeariaCore.Application.Services
 
         private static AuthenticationException CredenciaisInvalidas() =>
             new("AUTH_INVALID_CREDENTIALS", "Credencial inválida!");
+
     }
 }

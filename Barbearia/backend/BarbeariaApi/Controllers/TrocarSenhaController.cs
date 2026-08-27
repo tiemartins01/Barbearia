@@ -1,9 +1,7 @@
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Exceptions;
-using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.UseCases.Autenticacao;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
-using BarbeariaCore.Application.Interfaces.Services;
 
 namespace BarbeariaApi.Controllers
 {
@@ -12,9 +10,9 @@ namespace BarbeariaApi.Controllers
     public class TrocarSenhaController : ControllerBase
     {
 
-        private readonly ITrocaSenhaService _service;
+        private readonly RedefinirSenha _service;
 
-        public TrocarSenhaController(ITrocaSenhaService service)
+        public TrocarSenhaController(RedefinirSenha service)
         {
             _service = service;
         }
@@ -25,7 +23,8 @@ namespace BarbeariaApi.Controllers
         [EnableRateLimiting("troca-senha")]
         public async Task<IActionResult> TrocarSenha([FromBody] DTOMudarSenha request)
         {
-                var resultado = await _service.RealizarTrocaSenha(request.Codigo, request.Email, request.Senha, request.SenhaRepetida);
+                var resultado = await _service.ExecutarAsync(request.Codigo, 
+                    request.Email, request.Senha, request.SenhaRepetida);
                 return Ok(resultado);
         }
     }

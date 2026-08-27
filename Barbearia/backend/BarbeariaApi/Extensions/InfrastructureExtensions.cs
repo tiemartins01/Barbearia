@@ -3,7 +3,6 @@ using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Queries;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Services;
 using BarbeariaInfrastructure.Queries;
 using BarbeariaInfrastructure.Repository;
 using BarbeariaInfrastructure.Security;

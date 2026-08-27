@@ -1,23 +1,23 @@
-using BarbeariaCore.Application.Interfaces;
+﻿using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Repositories;
-using BarbeariaCore.Application.Interfaces.Services;
 using BarbeariaCore.Security;
 using Microsoft.Extensions.Logging;
 
-namespace BarbeariaCore.Application.Services
+namespace BarbeariaCore.UseCases.Autenticacao
 {
-    public sealed class EmailEsqueciSenhaService : IEmailEsqueciSenhaService
+    public sealed class SolicitarRecuperacaoSenha
     {
+
         private readonly IUsuarioRepository _usuarios;
         private readonly IEnviarEmail _enviar;
         private readonly IUnitOfWork _uow;
-        private readonly ILogger<EmailEsqueciSenhaService> _logger;
+        private readonly ILogger<SolicitarRecuperacaoSenha> _logger;
 
-        public EmailEsqueciSenhaService(
+        public SolicitarRecuperacaoSenha(
             IUsuarioRepository usuarios,
             IEnviarEmail enviar,
             IUnitOfWork uow,
-            ILogger<EmailEsqueciSenhaService> logger)
+            ILogger<SolicitarRecuperacaoSenha> logger)
         {
             _usuarios = usuarios;
             _enviar = enviar;
@@ -25,7 +25,7 @@ namespace BarbeariaCore.Application.Services
             _logger = logger;
         }
 
-        public async Task EnviarEmailAsync(string email)
+        public async Task ExecutarAsync(string email)
         {
             email = email.Trim().ToLowerInvariant();
 
@@ -61,5 +61,6 @@ namespace BarbeariaCore.Application.Services
                 "Código de recuperação enviado para {Email}",
                 email);
         }
+
     }
 }

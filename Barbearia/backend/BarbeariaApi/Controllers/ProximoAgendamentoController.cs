@@ -1,39 +1,43 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces;
+using BarbeariaCore.UseCases.Agendamentos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using BarbeariaCore.Domain.Exceptions;
 using ValidationException = BarbeariaCore.Exceptions.ValidationException;
-using BarbeariaCore.Application.Interfaces.Services;
 
 namespace BarbeariaApi.Controllers
 {
     [ApiController]
     [Route("agendamento")]
-    [Authorize(Roles = "Cliente")]
+    [Authorize(Policy = "ClientOnly")]
     public class ProximoAgendamentoController : ControllerBase
     {
-        private readonly IProximoAtendimentoService _service;
+        private readonly ConsultarProximoAgendamento _service;
+        private readonly ConsultarHorariosDisponiveis _disponiveis;
+        private readonly CriarAgendamento _criar;
         private readonly ICurrentUser _user;
         private readonly IIdempotencyService _idempotency;
 
         public ProximoAgendamentoController(
-            IProximoAtendimentoService service,
+            ConsultarProximoAgendamento service,
             ICurrentUser user,
-            IIdempotencyService idempotency)
+            IIdempotencyService idempotency,
+            ConsultarHorariosDisponiveis disponiveis,
+            CriarAgendamento criar)
         {
             _service = service;
             _user = user;
             _idempotency = idempotency;
+            _disponiveis = disponiveis;
+            _criar = criar;
         }
 
         [HttpGet("proximo")]
         [HttpGet("~/api/v1/appointments/next")]
-        public async Task<IActionResult> ProximoAgendamento() => Ok(await _service.ObterProximoAtendimentoAsync(_user.UserId));
+        public async Task<IActionResult> ProximoAgendamento() => Ok(await _service.ExecutarAsync(_user.UserId));
 
         [HttpGet("horarioslivres")]
         [HttpGet("~/api/v1/appointments/available-slots")]
@@ -42,7 +46,7 @@ namespace BarbeariaApi.Controllers
      [FromQuery] int id_servico,
      [FromQuery] DateOnly data)
         {
-            var horarios = await _service.ObterHorariosDisponiveisAsync(
+            var horarios = await _disponiveis.ExecutarAsync(
                 id_barbeiro,
                 id_servico,
                 data);
@@ -72,7 +76,7 @@ namespace BarbeariaApi.Controllers
                 _user.UserId,
                 "POST:/api/v1/appointments",
                 requestHash,
-                () => _service.AgendarHorarioAsync(
+                () => _criar.ExecutarAsync(
                     request.Id_barbeiro,
                     _user.UserId,
                     request.Id_servico,

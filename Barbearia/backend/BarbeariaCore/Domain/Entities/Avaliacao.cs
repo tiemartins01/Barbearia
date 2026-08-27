@@ -7,7 +7,7 @@ namespace BarbeariaCore.Domain.Entities
         #region Coluna das tabelas
         public int Id { get; private set; }
         public int BarbeiroId { get; private set; }
-        public int ClieteId { get; private set; }
+        public int ClienteId { get; private set; }
         public int AgendamentoId { get; private set; }
         public int Nota { get; private set; }
         public string? Comentario { get; private set; } = string.Empty;
@@ -30,7 +30,7 @@ namespace BarbeariaCore.Domain.Entities
                 throw new DomainException("REVIEW_COMMENT_TOO_LONG", "O comentário deve possuir no máximo 128 caracteres.");
 
             BarbeiroId = barbeiroId;
-            ClieteId = clienteId;
+            ClienteId = clienteId;
             AgendamentoId = agendamentoId;
             Nota = nota;
             Comentario = comentarioNormalizado;

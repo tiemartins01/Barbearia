@@ -1,7 +1,8 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.UseCases.Cliente;
+using BarbeariaInfrastructure.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,21 +10,39 @@ namespace BarbeariaApi.Controllers
 {
     [ApiController]
     [Route("cliente")]
-    [Authorize(Roles = "Cliente")]
+    [Authorize(Policy = "ClientOnly")]
     public class AbaClienteController : ControllerBase
     {
 
-        private readonly IAbaClienteService _service;
-        private readonly ICurrentUser _user;
+        private readonly ListarBarbeiros _listarBarbeiros;
+        private readonly ConsultarHistoricoCliente _consultarHistorico;
+        private readonly ConsultarDadosPessoais _consultarDados;
+        private readonly ConsultarAgendamentoDoCliente _consultarAgendamento;
+        private readonly AlterarDadosPessoais _alterarDados;
+        private readonly AvaliarAtendimento _avaliarAtendimento;
+        private readonly ICurrentUser _usuario;
 
-        public AbaClienteController(IAbaClienteService service, ICurrentUser user)
+        public AbaClienteController(
+            ListarBarbeiros listarBarbeiros,
+            ConsultarHistoricoCliente consultarHistorico,
+            ConsultarDadosPessoais consultarDados,
+            ConsultarAgendamentoDoCliente consultarAgendamento,
+            AlterarDadosPessoais alterarDados,
+            AvaliarAtendimento avaliarAtendimento,
+            ICurrentUser usuario)
         {
-            _service = service;
-            _user = user;
+            _listarBarbeiros = listarBarbeiros;
+            _consultarHistorico = consultarHistorico;
+            _consultarDados = consultarDados;
+            _consultarAgendamento = consultarAgendamento;
+            _alterarDados = alterarDados;
+            _avaliarAtendimento = avaliarAtendimento;
+            _usuario = usuario;
         }
+
         [HttpGet("barbeiros")]
         [HttpGet("~/api/v1/barbers")]
-        public async Task<IActionResult> BarbeirosCadastrados() => Ok(await _service.BuscarBarbeiros());
+        public async Task<IActionResult> BarbeirosCadastrados() => Ok(await _listarBarbeiros.ExecutarAsync());
 
 
         [HttpGet("historico")]
@@ -48,7 +67,7 @@ namespace BarbeariaApi.Controllers
                 });
             }
 
-            var resultado = await _service.HistoricoCliente(_user.UserId, page, pageSize);
+            var resultado = await _consultarHistorico.ExecutarAsync(_usuario.UserId, page, pageSize);
 
             return Ok(resultado);
         }
@@ -71,20 +90,22 @@ namespace BarbeariaApi.Controllers
 
         [HttpGet("dados")]
         [HttpGet("~/api/v1/users/me")]
-        public async Task<IActionResult> DadosPessais() => Ok(await _service.DadosPessoaisAsync(_user.UserId));
+        public async Task<IActionResult> DadosPessais() => Ok(await _consultarDados.ExecutarAsync(_usuario.UserId));
 
         [HttpPost("infoHorario")]
         [HttpGet("~/api/v1/appointments/{idHorario:int}")]
-        public async Task<IActionResult> informacoesHorario([FromBody] DTOInfoHorario request, [FromRoute] int? idHorario = null) => Ok(await _service.InfoHorarioDoCliente(idHorario ?? request.IdHorario, _user.UserId));
+        public async Task<IActionResult> informacoesHorario([FromBody] DTOInfoHorario request, 
+            [FromRoute] int? idHorario = null)
+            => Ok(await _consultarAgendamento.ExecutarAsync(idHorario ?? request.IdHorario, _usuario.UserId));
 
         [HttpPost("alterarDados")]
         [HttpPatch("~/api/v1/users/me")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AlterarDadosPessoais([FromBody] DTOAlterandoDados request) 
         {
-            request.Id = _user.UserId;
+            request.Id = _usuario.UserId;
 
-            await _service.AlterandoDados(request);
+            await _alterarDados.ExecutarAsync(request);
 
             return NoContent();
         }
@@ -94,7 +115,7 @@ namespace BarbeariaApi.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Avaliacao([FromBody] DTOAvaliacao request)
         {
-            await _service.RealizandoAvaliacaoAsync(request, _user.UserId); 
+            await _avaliarAtendimento.ExecutarAsync(request, _usuario.UserId); 
 
             return Ok(request);
         }

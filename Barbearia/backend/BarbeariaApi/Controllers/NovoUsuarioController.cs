@@ -1,6 +1,5 @@
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces;
-using BarbeariaCore.Application.Interfaces.Services;
+using BarbeariaCore.UseCases.Autenticacao;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 
@@ -11,9 +10,9 @@ namespace BarbeariaApi.Controllers
     public class NovoUsuarioController: ControllerBase
     {
 
-        private readonly INovoClienteService _service;
+        private readonly CadastrarCliente _service;
 
-        public NovoUsuarioController(INovoClienteService service)
+        public NovoUsuarioController(CadastrarCliente service)
         {
             _service = service;
         }
@@ -25,7 +24,9 @@ namespace BarbeariaApi.Controllers
         public async Task<IActionResult> Cadastrar([FromBody] DTONovoUsuario request)
         {
             
-                var resultado = await _service.CadastrarAsync(request.Nome, request.Email, request.Phone, request.CPF, request.Login, request.SenhaR, request.Foto);
+                var resultado = await _service.ExecutarAsync(request.Nome, 
+                    request.Email, request.Phone, request.CPF, request.Login, 
+                    request.SenhaR, request.Foto);
 
                 return Created();
         }
