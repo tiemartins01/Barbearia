@@ -17,7 +17,8 @@ namespace BarbeariaInfrastructure.Queries
 
         public Task<DTOProximoAgendamento?> ObterAsync(
             int clienteId,
-            DateTime agora)
+            DateTime agora,
+            CancellationToken cancellationToken)
         {
             return _context.Agendamentos
                 .AsNoTracking()
@@ -32,7 +33,7 @@ namespace BarbeariaInfrastructure.Queries
                     NomeBarbeiro = x.Barbeiro.Usuario.Nome,
                     NomeServico = x.Servico.Nome
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
         }
     }
 }

@@ -12,9 +12,9 @@ namespace BarbeariaCore.UseCases.Security
             _repository = repository;
         }
 
-        public async Task<IReadOnlyList<DTOSessao>> ExecutarAsync(int userId, string? currentToken)
+        public async Task<IReadOnlyList<DTOSessao>> ExecutarAsync(int userId, string? currentToken, CancellationToken cancellationToken)
         {
-            var sessions = await _repository.ListByUserAsync(userId);
+            var sessions = await _repository.ListByUserAsync(userId, cancellationToken);
             return sessions.Select(x => new DTOSessao
             {
                 Id = x.Id,

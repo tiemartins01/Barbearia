@@ -15,13 +15,14 @@ namespace BarbeariaInfrastructure.Repository
             _context = context;
         }
 
-        public Task<Agendamento?> ObterPorIdAsync(int agendamentoId) =>
-            _context.Agendamentos.FirstOrDefaultAsync(x => x.Id == agendamentoId);
+        public Task<Agendamento?> ObterPorIdAsync(int agendamentoId, CancellationToken cancellationToken = default) =>
+            _context.Agendamentos.FirstOrDefaultAsync(x => x.Id == agendamentoId, cancellationToken);
 
         public Task<bool> ExisteConflitoAsync(
             int barbeiroId,
             DateTime inicio,
-            DateTime fim)
+            DateTime fim, 
+            CancellationToken cancellationToken = default)
         {
             inicio = DateTime.SpecifyKind(inicio, DateTimeKind.Unspecified);
             fim = DateTime.SpecifyKind(fim, DateTimeKind.Unspecified);
@@ -32,14 +33,17 @@ namespace BarbeariaInfrastructure.Repository
                     x.BarbeiroId == barbeiroId &&
                     x.Status == StatusAgendamento.Agendado &&
                     inicio < x.HorarioFim &&
-                    fim > x.DataAgendamento);
+                    fim > x.DataAgendamento,
+                    cancellationToken);
         }
 
-        public async Task AdicionarAsync(Agendamento agendamento) =>
-            await _context.Agendamentos.AddAsync(agendamento);
+        public async Task AdicionarAsync(Agendamento agendamento, CancellationToken cancellationToken = default) =>
+            await _context.Agendamentos.AddAsync(agendamento, cancellationToken);
 
-        public Task AtualizarAsync(Agendamento agendamento)
+        public Task AtualizarAsync(Agendamento agendamento, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             _context.Agendamentos.Update(agendamento);
             return Task.CompletedTask;
         }

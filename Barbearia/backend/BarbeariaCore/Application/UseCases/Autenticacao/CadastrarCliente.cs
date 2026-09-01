@@ -3,7 +3,7 @@ using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Repositories;
 using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
-using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Application.Policies;
 using BarbeariaCore.Domain.Policies;
 using BarbeariaCore.Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -16,14 +16,17 @@ namespace BarbeariaCore.UseCases.Autenticacao
         private readonly IUnitOfWork _uow;
         private readonly ILogger<CadastrarCliente> _logger;
         private readonly IPasswordHash _hash;
+        private readonly UsuarioUnicidadePolicy _policy;
 
         public CadastrarCliente(IUsuarioRepository usuarios, IUnitOfWork uow,
-            ILogger<CadastrarCliente> logger, IPasswordHash hash) 
+            ILogger<CadastrarCliente> logger, IPasswordHash hash,
+            UsuarioUnicidadePolicy policy) 
         { 
             _uow = uow;
             _logger = logger;   
             _hash = hash;
             _usuarios = usuarios;
+            _policy = policy;
         }
 
         public async Task<DTOResposta> ExecutarAsync(
@@ -33,7 +36,8 @@ namespace BarbeariaCore.UseCases.Autenticacao
            string cpf,
            string login,
            string senha,
-           string foto)
+           string foto,
+           CancellationToken cancellationToken)
         {
             nome = nome.Trim();
             login = login.Trim().ToLowerInvariant();
@@ -44,14 +48,17 @@ namespace BarbeariaCore.UseCases.Autenticacao
 
             PoliticaSenha.Validar(senha);
 
-            await ValidarUnicidadeAsync(
+            await _policy.ValidarAsync(
                 emailNormalizado,
                 cpfNormalizado,
                 telefoneNormalizado,
-                login);
+                login,
+                cancellationToken);
 
             var senhaHash = _hash.Hash(senha);
             var senhaDominio = Senha.DeHash(senhaHash);
+
+            var agora = DateTime.UtcNow;
 
             var novoUsuario = new Usuario(
                 nome,
@@ -64,13 +71,13 @@ namespace BarbeariaCore.UseCases.Autenticacao
                 true,
                 foto);
 
-            await _usuarios.AdicionarAsync(novoUsuario);
+            await _usuarios.AdicionarAsync(novoUsuario, cancellationToken);
 
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
 
-            novoUsuario.RegistrarCriacao();
+            novoUsuario.RegistrarCriacao(agora);
 
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Usuário novo cadastrado com o login: {Login}",
@@ -82,25 +89,5 @@ namespace BarbeariaCore.UseCases.Autenticacao
                 Mensagem = "Usuário cadastrado com sucesso!"
             };
         }
-
-        private async Task ValidarUnicidadeAsync(
-            Email email,
-            Cpf cpf,
-            Telefone telefone,
-            string login)
-        {
-            if (await _usuarios.ObterPorEmailAsync(email.Valor) is not null)
-                throw new DomainException("USER_EMAIL_ALREADY_EXISTS", "E-mail já cadastrado.");
-
-            if (await _usuarios.ObterPorCpfAsync(cpf.Valor) is not null)
-                throw new DomainException("USER_CPF_ALREADY_EXISTS", "CPF já cadastrado.");
-
-            if (await _usuarios.ObterPorTelefoneAsync(telefone.Valor) is not null)
-                throw new DomainException("USER_PHONE_ALREADY_EXISTS", "Telefone já cadastrado.");
-
-            if (await _usuarios.ObterPorLoginAsync(login) is not null)
-                throw new DomainException("USER_LOGIN_ALREADY_EXISTS", "Login já cadastrado.");
-        }
-
     }
 }

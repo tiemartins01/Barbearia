@@ -4,8 +4,8 @@ namespace BarbeariaCore.Application.Interfaces.Repositories
 {
     public interface IAvaliacaoRepository
     {
-        Task<Avaliacao?> ObterPorIdAsync(int avaliacaoId);
-        Task<bool> ExisteParaAgendamentoAsync(int agendamentoId);
-        Task AdicionarAsync(Avaliacao avaliacao);
+        Task<Avaliacao?> ObterPorIdAsync(int avaliacaoId, CancellationToken cancellationToken = default);
+        Task<bool> ExisteParaAgendamentoAsync(int agendamentoId, CancellationToken cancellationToken = default);
+        Task AdicionarAsync(Avaliacao avaliacao, CancellationToken cancellationToken = default);
     }
 }

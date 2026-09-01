@@ -6,6 +6,7 @@ namespace BarbeariaCore.Application.Interfaces.Queries
     {
         Task<IReadOnlyList<PeriodoOcupado>> BuscarPeriodosOcupadosAsync(
             int barbeiroId,
-            DateOnly data);
+            DateOnly data,
+            CancellationToken cancellationToken);
     }
 }

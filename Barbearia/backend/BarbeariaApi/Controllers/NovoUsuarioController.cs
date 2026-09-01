@@ -21,12 +21,12 @@ namespace BarbeariaApi.Controllers
         [HttpPost("~/api/v1/users")]
         [IgnoreAntiforgeryToken]
         [EnableRateLimiting("cadastro")]
-        public async Task<IActionResult> Cadastrar([FromBody] DTONovoUsuario request)
+        public async Task<IActionResult> Cadastrar([FromBody] DTONovoUsuario request, CancellationToken cancellationToken)
         {
-            
-                var resultado = await _service.ExecutarAsync(request.Nome, 
-                    request.Email, request.Phone, request.CPF, request.Login, 
-                    request.SenhaR, request.Foto);
+
+            var resultado = await _service.ExecutarAsync(request.Nome,
+                request.Email, request.Telefone, request.Cpf, request.Login,
+                request.Senha, request.Foto, cancellationToken);
 
                 return Created();
         }

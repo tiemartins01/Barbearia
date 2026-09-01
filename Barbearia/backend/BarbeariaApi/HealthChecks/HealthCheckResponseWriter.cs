@@ -23,7 +23,7 @@ public static class HealthCheckResponseWriter
             })
         };
 
-        return context.Response.WriteAsync(JsonSerializer.Serialize(response));
+        return context.Response.WriteAsync(JsonSerializer.Serialize(response), context.RequestAborted);
     }
 }
 

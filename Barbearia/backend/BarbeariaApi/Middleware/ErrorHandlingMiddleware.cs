@@ -165,6 +165,6 @@ public sealed class ErrorHandlingMiddleware
 
         var json = JsonSerializer.Serialize(response);
 
-        await context.Response.WriteAsync(json);
+        await context.Response.WriteAsync(json, context.RequestAborted);
     }
 }

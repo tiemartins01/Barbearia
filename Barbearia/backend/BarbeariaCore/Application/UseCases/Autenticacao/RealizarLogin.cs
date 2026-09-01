@@ -32,12 +32,12 @@ namespace BarbeariaCore.UseCases.Autenticacao
             _passwordHash = passwordHash;
         }
 
-        public async Task<DTOAuthResponse> ExecutarAsync(string login, string senha)
+        public async Task<DTOAuthResponse> ExecutarAsync(string login, string senha, CancellationToken cancellationToken)
         {
             login = login.Trim().ToLowerInvariant();
-            var agora = DateTime.Now;
+            var agora = DateTime.UtcNow;
 
-            var usuario = await _usuarios.ObterPorLoginAsync(login);
+            var usuario = await _usuarios.ObterPorLoginAsync(login, cancellationToken);
 
             if (usuario is null)
             {
@@ -54,15 +54,15 @@ namespace BarbeariaCore.UseCases.Autenticacao
             if (!_passwordHash.Verify(senha, usuario.Senha.Hash))
             {
                 usuario.RegistrarFalhaLogin(agora);
-                await _usuarios.AtualizarAsync(usuario);
-                await _uow.SaveChangesAsync();
+                await _usuarios.AtualizarAsync(usuario, cancellationToken);
+                await _uow.SaveChangesAsync(cancellationToken);
 
                 _logger.LogWarning("Senha incorreta para {Login}", login);
                 throw CredenciaisInvalidas();
             }
 
             usuario.ResetarTentativasLogin();
-            await _usuarios.AtualizarAsync(usuario);
+            await _usuarios.AtualizarAsync(usuario, cancellationToken);
 
             var accessToken = _token.GenerateToken(usuario);
             var refreshToken = _token.GenerateRefreshToken();
@@ -70,14 +70,15 @@ namespace BarbeariaCore.UseCases.Autenticacao
             await _refresh.SaveAsync(
                 usuario.Id,
                 refreshToken,
-                DateTime.UtcNow.AddDays(7));
+                DateTime.UtcNow.AddDays(7),
+                cancellationToken);
 
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
 
             return new DTOAuthResponse
             {
-                accessToken = accessToken,
-                refreshToken = refreshToken
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
             };
         }
 

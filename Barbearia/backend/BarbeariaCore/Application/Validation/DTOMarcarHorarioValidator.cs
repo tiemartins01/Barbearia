@@ -7,8 +7,8 @@ public sealed class DTOMarcarHorarioValidator : AbstractValidator<DTOMarcarHorar
 {
     public DTOMarcarHorarioValidator()
     {
-        RuleFor(x => x.Id_barbeiro).GreaterThan(0);
-        RuleFor(x => x.Id_servico).GreaterThan(0);
-        RuleFor(x => x.horario).NotEmpty();
+        RuleFor(x => x.BarbeiroId).GreaterThan(0);
+        RuleFor(x => x.ServicoId).GreaterThan(0);
+        RuleFor(x => x.Horario).NotEmpty();
     }
 }

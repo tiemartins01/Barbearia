@@ -4,6 +4,6 @@ namespace BarbeariaCore.Application.Interfaces.Queries
 {
     public interface IServicosAtivosQuery
     {
-        Task<IReadOnlyList<DTOServicosAtivos>> ListarAsync();
+        Task<IReadOnlyList<DTOServicosAtivos>> ListarAsync(CancellationToken cancellationToken = default);
     }
 }

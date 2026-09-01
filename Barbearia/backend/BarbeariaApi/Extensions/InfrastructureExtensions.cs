@@ -3,6 +3,7 @@ using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.Interfaces;
 using BarbeariaCore.Application.Interfaces.Queries;
 using BarbeariaCore.Application.Interfaces.Repositories;
+using BarbeariaCore.Security;
 using BarbeariaInfrastructure.Queries;
 using BarbeariaInfrastructure.Repository;
 using BarbeariaInfrastructure.Security;
@@ -14,7 +15,7 @@ namespace BarbeariaApi.Extensions
     {
         public static IServiceCollection AddBarbeariaInfrastructure(
             this IServiceCollection services)
-        {
+         {
             // Aggregate repositories
             services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             services.AddScoped<IAgendamentoRepository, AgendamentoRepository>();
@@ -37,6 +38,8 @@ namespace BarbeariaApi.Extensions
             services.AddScoped<IIdempotencyService, DatabaseIdempotencyService>();
             services.AddScoped<ITokenService, TokenService>();
             services.AddHostedService<OutboxProcessorService>();
+
+            services.AddScoped<ICodigoRecuperacaoGenerator, CodigoRecuperacaoGenerator>();
 
             return services;
         }

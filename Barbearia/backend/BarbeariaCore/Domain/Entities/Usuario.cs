@@ -8,24 +8,30 @@ using BarbeariaCore.Domain.ValueObjects;
 namespace BarbeariaCore.Domain.Entities;
 
 /// <summary>
-/// Aggregate Root responsável pelas regras de identidade, autenticação,
-/// bloqueio, ativação e recuperação de senha do usuário.
+/// Aggregate Root responsável pelas regras de identidade,
+/// autenticação, bloqueio, ativação e recuperação de senha do usuário.
 /// </summary>
 public sealed class Usuario : AggregateRoot
 {
     public int Id { get; private set; }
 
-    public string Nome { get; private set; } = string.Empty;
+    public string Nome { get; private set; } =
+        string.Empty;
 
-    public Email Email { get; private set; } = null!;
+    public Email Email { get; private set; } =
+        null!;
 
-    public Telefone Numero { get; private set; } = null!;
+    public Telefone Telefone { get; private set; } =
+        null!;
 
-    public Cpf CPF { get; private set; } = null!;
+    public Cpf Cpf { get; private set; } =
+        null!;
 
-    public string Login { get; private set; } = string.Empty;
+    public string Login { get; private set; } =
+        string.Empty;
 
-    public Senha Senha { get; private set; } = null!;
+    public Senha Senha { get; private set; } =
+        null!;
 
     public RolePerson Role { get; private set; }
 
@@ -39,18 +45,25 @@ public sealed class Usuario : AggregateRoot
 
     public string? Codigo { get; private set; }
 
-    public DateTime? CodigoRecuperacaoExpiraEm { get; private set; }
+    public DateTime? CodigoRecuperacaoExpiraEm
+    {
+        get;
+        private set;
+    }
 
     public int TentativasCodigo { get; private set; }
 
     public bool CodigoAtivo { get; private set; }
 
-    private Usuario() { } // Entity Framework
+    private Usuario()
+    {
+        // Entity Framework
+    }
 
     public Usuario(
         string nome,
         Email email,
-        Telefone numero,
+        Telefone telefone,
         Cpf cpf,
         string login,
         Senha senha,
@@ -58,47 +71,56 @@ public sealed class Usuario : AggregateRoot
         bool ativado,
         string? foto)
     {
-        Nome = ValidarNome(nome);
+        Nome =
+            ValidarNome(nome);
 
-        Login = NormalizarLogin(login);
+        Login =
+            NormalizarLogin(login);
 
-        Email = email ?? throw new DomainException(
-            "USER_INVALID_EMAIL",
-            "E-mail é obrigatório.");
+        Email =
+            email ??
+            throw new DomainException(
+                "USER_INVALID_EMAIL",
+                "E-mail é obrigatório.");
 
-        Numero = numero ?? throw new DomainException(
-            "USER_INVALID_PHONE",
-            "Telefone é obrigatório.");
+        Telefone =
+            telefone ??
+            throw new DomainException(
+                "USER_INVALID_PHONE",
+                "Telefone é obrigatório.");
 
-        CPF = cpf ?? throw new DomainException(
-            "USER_INVALID_CPF",
-            "CPF é obrigatório.");
+        Cpf =
+            cpf ??
+            throw new DomainException(
+                "USER_INVALID_CPF",
+                "CPF é obrigatório.");
 
-        Senha = senha ?? throw new DomainException(
-            "USER_INVALID_PASSWORD",
-            "Senha é obrigatória.");
+        Senha =
+            senha ??
+            throw new DomainException(
+                "USER_INVALID_PASSWORD",
+                "Senha é obrigatória.");
 
         Role = role;
+
         Ativado = ativado;
 
-        Foto = string.IsNullOrWhiteSpace(foto)
-            ? null
-            : foto.Trim();
+        Foto =
+            string.IsNullOrWhiteSpace(foto)
+                ? null
+                : foto.Trim();
     }
 
-    public void RegistrarCriacao()
+    public void RegistrarCriacao(
+        DateTime ocorridoEmUtc)
     {
-        if (Id <= 0)
-        {
-            throw new DomainException(
-                "USER_INVALID_ID",
-                "Usuário ainda não foi persistido.");
-        }
+        ValidarIdPersistido();
 
         AddDomainEvent(
             new UsuarioCriadoDomainEvent(
                 Id,
-                Login));
+                Login,
+                ocorridoEmUtc));
     }
 
     public void AlterarDados(
@@ -107,65 +129,84 @@ public sealed class Usuario : AggregateRoot
         Telefone telefone,
         Cpf cpf)
     {
-        Nome = ValidarNome(nome);
+        Nome =
+            ValidarNome(nome);
 
-        Email = email ?? throw new DomainException(
-            "USER_INVALID_EMAIL",
-            "E-mail é obrigatório.");
+        Email =
+            email ??
+            throw new DomainException(
+                "USER_INVALID_EMAIL",
+                "E-mail é obrigatório.");
 
-        Numero = telefone ?? throw new DomainException(
-            "USER_INVALID_PHONE",
-            "Telefone é obrigatório.");
+        Telefone =
+            telefone ??
+            throw new DomainException(
+                "USER_INVALID_PHONE",
+                "Telefone é obrigatório.");
 
-        CPF = cpf ?? throw new DomainException(
-            "USER_INVALID_CPF",
-            "CPF é obrigatório.");
+        Cpf =
+            cpf ??
+            throw new DomainException(
+                "USER_INVALID_CPF",
+                "CPF é obrigatório.");
     }
 
     public void AlterarSenhaPerfil(
-        Senha novaSenha)
+        Senha novaSenha,
+        DateTime ocorridoEmUtc)
     {
-        DefinirNovaSenha(novaSenha);
+        DefinirNovaSenha(
+            novaSenha);
 
         AddDomainEvent(
-            new SenhaAlteradaDomainEvent(Id));
+            new SenhaAlteradaDomainEvent(
+                Id,
+                ocorridoEmUtc));
     }
 
     public bool PodeAutenticar(
-        DateTime agora)
+        DateTime agoraUtc)
     {
         if (!Ativado)
             return false;
 
-        return BloqueioAte is null ||
-               BloqueioAte <= agora;
+        return
+            BloqueioAte is null ||
+            BloqueioAte <= agoraUtc;
     }
 
     public void RegistrarFalhaLogin(
-        DateTime agora)
+        DateTime agoraUtc)
     {
         TentativasLogin++;
 
-        if (TentativasLogin < PoliticaAutenticacao.LimiteTentativas)
+        if (TentativasLogin <
+            PoliticaAutenticacao.LimiteTentativas)
+        {
             return;
+        }
 
-        BloqueioAte = agora.Add(PoliticaAutenticacao.DuracaoBloqueio);
+        BloqueioAte =
+            agoraUtc.Add(
+                PoliticaAutenticacao.DuracaoBloqueio);
 
         AddDomainEvent(
             new UsuarioBloqueadoDomainEvent(
                 Id,
-                BloqueioAte.Value));
+                BloqueioAte.Value,
+                agoraUtc));
     }
 
     public void ResetarTentativasLogin()
     {
         TentativasLogin = 0;
+
         BloqueioAte = null;
     }
 
     public void GerarCodigo(
         string codigo,
-        DateTime agora)
+        DateTime agoraUtc)
     {
         if (string.IsNullOrWhiteSpace(codigo))
         {
@@ -174,22 +215,27 @@ public sealed class Usuario : AggregateRoot
                 "Código inválido.");
         }
 
-        Codigo = codigo.Trim();
+        Codigo =
+            codigo.Trim();
 
-        CodigoRecuperacaoExpiraEm = agora.Add(PoliticaAutenticacao.TempoCodigo);
+        CodigoRecuperacaoExpiraEm =
+            agoraUtc.Add(
+                PoliticaAutenticacao.TempoCodigo);
 
         CodigoAtivo = true;
+
         TentativasCodigo = 0;
 
         AddDomainEvent(
             new RecuperacaoSenhaSolicitadaDomainEvent(
                 Id,
-                CodigoRecuperacaoExpiraEm.Value));
+                CodigoRecuperacaoExpiraEm.Value,
+                agoraUtc));
     }
 
     public bool PodeTrocarSenha(
         string codigoDigitado,
-        DateTime agora)
+        DateTime agoraUtc)
     {
         if (string.IsNullOrWhiteSpace(
                 codigoDigitado))
@@ -197,40 +243,52 @@ public sealed class Usuario : AggregateRoot
             return false;
         }
 
-        return CodigoIsValido(agora) &&
-               Codigo == codigoDigitado.Trim();
+        return
+            CodigoIsValido(agoraUtc) &&
+            Codigo ==
+            codigoDigitado.Trim();
     }
 
     public bool CodigoIsValido(
-        DateTime agora)
+        DateTime agoraUtc)
     {
-        return CodigoAtivo &&
-               CodigoRecuperacaoExpiraEm.HasValue &&
-               CodigoRecuperacaoExpiraEm.Value > agora;
+        return
+            CodigoAtivo &&
+            CodigoRecuperacaoExpiraEm.HasValue &&
+            CodigoRecuperacaoExpiraEm.Value >
+            agoraUtc;
     }
 
     public void RegistrarFalhaTrocaSenha()
     {
         TentativasCodigo++;
 
-        if (TentativasCodigo >= PoliticaAutenticacao.LimiteTentativas)
+        if (TentativasCodigo >=
+            PoliticaAutenticacao.LimiteTentativas)
         {
             CodigoAtivo = false;
         }
     }
 
-    public void AlterarSenha(
-        Senha novaSenha)
+    public void RedefinirSenha(
+        Senha novaSenha,
+        DateTime ocorridoEmUtc)
     {
-        DefinirNovaSenha(novaSenha);
+        DefinirNovaSenha(
+            novaSenha);
 
         LimparCodigo();
 
+        ResetarTentativasLogin();
+
         AddDomainEvent(
-            new SenhaAlteradaDomainEvent(Id));
+            new SenhaAlteradaDomainEvent(
+                Id,
+                ocorridoEmUtc));
     }
 
-    public void AtivarUsuario()
+    public void AtivarUsuario(
+        DateTime ocorridoEmUtc)
     {
         if (Ativado)
         {
@@ -244,10 +302,12 @@ public sealed class Usuario : AggregateRoot
         AddDomainEvent(
             new UsuarioAtivacaoAlteradaDomainEvent(
                 Id,
-                true));
+                true,
+                ocorridoEmUtc));
     }
 
-    public void DesativarUsuario()
+    public void DesativarUsuario(
+        DateTime ocorridoEmUtc)
     {
         if (!Ativado)
         {
@@ -261,23 +321,39 @@ public sealed class Usuario : AggregateRoot
         AddDomainEvent(
             new UsuarioAtivacaoAlteradaDomainEvent(
                 Id,
-                false));
+                false,
+                ocorridoEmUtc));
     }
 
     private void DefinirNovaSenha(
         Senha senha)
     {
-        Senha = senha ?? throw new DomainException(
-            "USER_INVALID_PASSWORD",
-            "Senha é obrigatória.");
+        Senha =
+            senha ??
+            throw new DomainException(
+                "USER_INVALID_PASSWORD",
+                "Senha é obrigatória.");
     }
 
     private void LimparCodigo()
     {
         Codigo = null;
+
         CodigoRecuperacaoExpiraEm = null;
+
         TentativasCodigo = 0;
+
         CodigoAtivo = false;
+    }
+
+    private void ValidarIdPersistido()
+    {
+        if (Id <= 0)
+        {
+            throw new DomainException(
+                "USER_INVALID_ID",
+                "Usuário ainda não foi persistido.");
+        }
     }
 
     private static string ValidarNome(

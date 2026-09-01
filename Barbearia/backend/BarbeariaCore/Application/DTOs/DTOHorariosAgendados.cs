@@ -3,7 +3,7 @@
     public class DTOHorariosAgendados
     {
         public DateOnly Data { get; set; }
-        public int Id_barbeiro { get; set; }
+        public int BarbeiroId { get; set; }
 
     }
 }

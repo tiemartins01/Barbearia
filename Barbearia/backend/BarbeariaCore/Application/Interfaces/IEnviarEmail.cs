@@ -3,7 +3,7 @@
     public interface IEnviarEmail 
     {
 
-        Task EnviarEmailAsync(string destinatario, string assunto, string mensagem);
+        Task EnviarEmailAsync(string destinatario, string assunto, string mensagem, CancellationToken cancellationToken);
 
     }
 }

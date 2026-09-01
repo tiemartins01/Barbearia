@@ -2,6 +2,6 @@
 {
     public class DTOInfoHorario
     {
-        public int IdHorario { get; set; }
+        public int AgendamentoId { get; set; }
     }
 }

@@ -14,21 +14,23 @@ namespace BarbeariaInfrastructure.Repository
             _context = context;
         }
 
-        public Task<Barbeiro?> ObterPorIdAsync(int barbeiroId) =>
-            _context.Barbeiros.FirstOrDefaultAsync(x => x.Id == barbeiroId);
+        public Task<Barbeiro?> ObterPorIdAsync(int barbeiroId, CancellationToken cancellationToken = default) =>
+            _context.Barbeiros.FirstOrDefaultAsync(x => x.Id == barbeiroId, cancellationToken);
 
-        public Task<bool> ExisteAtivoAsync(int barbeiroId) =>
+        public Task<bool> ExisteAtivoAsync(int barbeiroId, CancellationToken cancellationToken = default) =>
             _context.Barbeiros
                 .AsNoTracking()
                 .AnyAsync(x =>
                     x.Id == barbeiroId &&
-                    x.Usuario.Ativado);
+                    x.Usuario.Ativado,
+                cancellationToken);
 
-        public async Task AdicionarAsync(Barbeiro barbeiro) =>
-            await _context.Barbeiros.AddAsync(barbeiro);
+        public async Task AdicionarAsync(Barbeiro barbeiro, CancellationToken cancellationToken = default) =>
+            await _context.Barbeiros.AddAsync(barbeiro, cancellationToken);
 
-        public Task AtualizarAsync(Barbeiro barbeiro)
+        public Task AtualizarAsync(Barbeiro barbeiro, CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             _context.Barbeiros.Update(barbeiro);
             return Task.CompletedTask;
         }

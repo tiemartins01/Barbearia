@@ -22,11 +22,11 @@ namespace BarbeariaCore.UseCases.Security
             _usuarios = usuarios;
         }
 
-        public async Task<DTOAuthResponse> ExecutarAsync(string refreshToken)
+        public async Task<DTOAuthResponse> ExecutarAsync(string refreshToken, CancellationToken cancellationToken = default)
         {
-            var agora = DateTime.Now;
+            var agora = DateTime.UtcNow;
 
-            var refresh = await _repository.GetAsync(refreshToken);
+            var refresh = await _repository.GetAsync(refreshToken, cancellationToken);
             if (refresh is null)
                 throw InvalidRefresh();
 
@@ -35,8 +35,8 @@ namespace BarbeariaCore.UseCases.Security
             {
                 if (!string.IsNullOrWhiteSpace(refresh.ReplacedByToken))
                 {
-                    await _repository.RevokeFamilyAsync(refresh.FamilyId, "REFRESH_TOKEN_REUSE_DETECTED");
-                    await _uow.SaveChangesAsync();
+                    await _repository.RevokeFamilyAsync(refresh.FamilyId, "REFRESH_TOKEN_REUSE_DETECTED", cancellationToken);
+                    await _uow.SaveChangesAsync(cancellationToken);
                 }
                 throw InvalidRefresh();
             }
@@ -44,18 +44,18 @@ namespace BarbeariaCore.UseCases.Security
             if (refresh.EstaExpirado(DateTime.UtcNow))
                 throw InvalidRefresh();
 
-            var usuario = await _usuarios.ObterPorIdAsync(refresh.UsuarioId);
+            var usuario = await _usuarios.ObterPorIdAsync(refresh.UsuarioId, cancellationToken);
             if (usuario is null || !usuario.Ativado || !usuario.PodeAutenticar(agora))
                 throw new AuthenticationException("AUTH_INVALID_CREDENTIALS", "Credencial inválida");
 
             var accessToken = _token.GenerateToken(usuario);
             var novoRefresh = _token.GenerateRefreshToken();
 
-            await _repository.RevokeAsync(refreshToken, novoRefresh, "ROTATED");
-            await _repository.SaveAsync(usuario.Id, novoRefresh, DateTime.UtcNow.AddDays(7), refresh.FamilyId, null);
-            await _uow.SaveChangesAsync();
+            await _repository.RevokeAsync(refreshToken, novoRefresh, "ROTATED", cancellationToken);
+            await _repository.SaveAsync(usuario.Id, novoRefresh, DateTime.UtcNow.AddDays(7), refresh.FamilyId, null,cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
-            return new DTOAuthResponse { accessToken = accessToken, refreshToken = novoRefresh };
+            return new DTOAuthResponse { AccessToken = accessToken, RefreshToken = novoRefresh };
         }
         private static AuthenticationException InvalidRefresh() =>
             new("INVALID_REFRESH", "Credenciais inválidas");

@@ -13,10 +13,10 @@ namespace BarbeariaCore.UseCases.Security
             _uow = uow;
         }
 
-        public async Task ExecutarAsync(int userId)
+        public async Task ExecutarAsync(int userId, CancellationToken cancellationToken = default)
         {
-            await _repository.RevokeAllByUserAsync(userId);
-            await _uow.SaveChangesAsync();
+            await _repository.RevokeAllByUserAsync(userId, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
         }
 
     }

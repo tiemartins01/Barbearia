@@ -1,3 +1,4 @@
+using BarbeariaCore.Application.Policies;
 using BarbeariaCore.UseCases.Agendamentos;
 using BarbeariaCore.UseCases.Autenticacao;
 using BarbeariaCore.UseCases.Cliente;
@@ -40,6 +41,8 @@ namespace BarbeariaApi.Extensions
             services.AddScoped<ListarSessoes>();
             services.AddScoped<RevogarTodasSessoes>();
             services.AddScoped<RevogarSessao>();
+
+            services.AddScoped<UsuarioUnicidadePolicy>();
 
             return services;
         }

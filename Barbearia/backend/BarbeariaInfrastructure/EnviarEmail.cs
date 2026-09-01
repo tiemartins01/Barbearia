@@ -20,7 +20,7 @@ namespace BarbeariaInfrastructure
             _settings = options.Value;
         }
 
-        public async Task EnviarEmailAsync(string destinatario,string assunto,string mensagem)
+        public async Task EnviarEmailAsync(string destinatario,string assunto,string mensagem, CancellationToken cancellationToken = default)
         {
             if (!_settings.Enabled)
             {
@@ -49,7 +49,7 @@ namespace BarbeariaInfrastructure
 
             mail.To.Add(destinatario);
 
-            await smtp.SendMailAsync(mail);
+            await smtp.SendMailAsync(mail, cancellationToken);
         }
 
     }

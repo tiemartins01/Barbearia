@@ -21,9 +21,9 @@ namespace BarbeariaCore.UseCases.Cliente
             _passwordHash = passwordHash;
         }
 
-        public async Task ExecutarAsync(DTOAlterandoDados dados)
+        public async Task ExecutarAsync(DTOAlterandoDados dados, CancellationToken cancellationToken)
         {
-            var usuario = await _usuarios.ObterPorIdAsync(dados.Id);
+            var usuario = await _usuarios.ObterPorIdAsync(dados.Id, cancellationToken);
 
             if (usuario is null)
                 throw new AuthenticationException(
@@ -53,11 +53,13 @@ namespace BarbeariaCore.UseCases.Cliente
                 var senhaHash = _passwordHash.Hash(dados.NovaSenha);
                 var senhaDominio = Senha.DeHash(senhaHash);
 
-                usuario.AlterarSenhaPerfil(senhaDominio);
+                var agora = DateTime.UtcNow;
+
+                usuario.AlterarSenhaPerfil(senhaDominio, agora);
             }
 
-            await _usuarios.AtualizarAsync(usuario);
-            await _uow.SaveChangesAsync();
+            await _usuarios.AtualizarAsync(usuario, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
         }
 
     }

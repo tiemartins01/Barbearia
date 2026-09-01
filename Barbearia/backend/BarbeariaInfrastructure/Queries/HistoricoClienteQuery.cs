@@ -15,10 +15,11 @@ namespace BarbeariaInfrastructure.Queries
             _context = context;
         }
 
-        public async Task<IReadOnlyList<DTOHistorico>> ConsultarAsync(
+        public async Task<IReadOnlyList<DTOHistorico>> ConsultarHistoricoAsync(
             int clienteId,
             int page,
-            int pageSize)
+            int pageSize,
+            CancellationToken cancellationToken)
         {
             return await _context.Agendamentos
                 .AsNoTracking()
@@ -38,7 +39,7 @@ namespace BarbeariaInfrastructure.Queries
                     Data = x.DataAgendamento,
                     PodeAvaliar = x.Status == StatusAgendamento.Concluido
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

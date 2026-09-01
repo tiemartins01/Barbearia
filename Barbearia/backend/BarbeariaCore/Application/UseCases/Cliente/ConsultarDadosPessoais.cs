@@ -12,9 +12,9 @@ namespace BarbeariaCore.UseCases.Cliente
             _query = query;
         }
 
-        public Task<DTODadosPessoais?> ExecutarAsync(int idCliente)
+        public Task<DTODadosPessoais?> ExecutarAsync(int idCliente, CancellationToken cancellationToken)
         {
-            return _query.ConsultarAsync(idCliente);
+            return _query.ConsultarDadosPessoaisAsync(idCliente, cancellationToken);
         }
     }
 }

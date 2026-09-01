@@ -15,9 +15,9 @@ namespace BarbeariaCore.UseCases.Cliente
 
         public async Task<IReadOnlyList<DTOHistorico>> ExecutarAsync(int idCliente,
             int page,
-            int pageSize)
+            int pageSize, CancellationToken cancellationToken)
         {
-            return await _query.ConsultarAsync(idCliente, page, pageSize);
+            return await _query.ConsultarHistoricoAsync(idCliente, page, pageSize, cancellationToken);
         }
 
     }

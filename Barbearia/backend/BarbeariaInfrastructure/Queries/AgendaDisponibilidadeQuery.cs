@@ -17,7 +17,7 @@ namespace BarbeariaInfrastructure.Queries
 
         public async Task<IReadOnlyList<PeriodoOcupado>> BuscarPeriodosOcupadosAsync(
             int barbeiroId,
-            DateOnly data)
+            DateOnly data, CancellationToken cancellationToken)
         {
             var inicioDia = data.ToDateTime(TimeOnly.MinValue);
             var fimDia = data.AddDays(1).ToDateTime(TimeOnly.MinValue);
@@ -33,7 +33,7 @@ namespace BarbeariaInfrastructure.Queries
                 .Select(x => new PeriodoOcupado(
                     x.DataAgendamento,
                     x.HorarioFim))
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

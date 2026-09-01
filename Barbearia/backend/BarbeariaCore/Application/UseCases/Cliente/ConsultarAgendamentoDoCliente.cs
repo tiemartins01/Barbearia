@@ -17,11 +17,11 @@ namespace BarbeariaCore.UseCases.Cliente
 
         public async Task<DTOHorarioDetalhes?> ExecutarAsync(
             int agendamentoId,
-            int clienteId)
+            int clienteId, CancellationToken cancellationToken)
         {
             var agendamento =
                 await _agendamentos.ObterPorIdAsync(
-                    agendamentoId);
+                    agendamentoId, cancellationToken);
 
             if (agendamento is null)
                 return null;

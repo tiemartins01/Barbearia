@@ -15,7 +15,7 @@ namespace BarbeariaCore.UseCases.Agendamentos
             _proximoAgendamentoQuery = proximoAgendamentoQuery;
         }
 
-        public async Task<DTOProximoAgendamento?> ExecutarAsync(int idUsuario)
+        public async Task<DTOProximoAgendamento?> ExecutarAsync(int idUsuario, CancellationToken cancellationToken)
         {
             if (idUsuario <= 0)
                 throw new ValidationException(
@@ -24,8 +24,8 @@ namespace BarbeariaCore.UseCases.Agendamentos
 
             return await _proximoAgendamentoQuery.ObterAsync(
                 idUsuario,
-                DateTime.Now);
+                DateTime.UtcNow,
+                cancellationToken);
         }
-
     }
 }

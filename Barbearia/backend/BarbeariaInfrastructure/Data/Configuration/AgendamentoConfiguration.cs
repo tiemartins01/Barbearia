@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace BarbeariaCore.Infrastructure.Configuration
 {
-    public class AgendamentosConfiguration : IEntityTypeConfiguration<Agendamento>
+    public class AgendamentoConfiguration : IEntityTypeConfiguration<Agendamento>
     {
         public void Configure(EntityTypeBuilder<Agendamento> e)
         {

@@ -22,7 +22,8 @@ namespace BarbeariaCore.UseCases.Agendamentos
         public async Task<IReadOnlyCollection<TimeOnly>> ExecutarAsync(
             int idBarbeiro,
             int idServico,
-            DateOnly data)
+            DateOnly data,
+            CancellationToken cancellationToken)
         {
             if (idBarbeiro <= 0)
                 throw new ValidationException(
@@ -34,18 +35,18 @@ namespace BarbeariaCore.UseCases.Agendamentos
                     "SERVICE_ID_INVALID",
                     "O identificador do serviço é inválido.");
 
-            var agora = DateTime.Now;
+            var agora = DateTime.UtcNow;
 
             PoliticaAgenda.ValidarDataNaoPassada(
                 data,
                 DateOnly.FromDateTime(agora));
 
-            if (!await _barbeiros.ExisteAtivoAsync(idBarbeiro))
+            if (!await _barbeiros.ExisteAtivoAsync(idBarbeiro, cancellationToken))
                 throw new NotFoundException(
                     "BARBER_NOT_FOUND",
                     "Barbeiro não encontrado.");
 
-            var servico = await _servicos.ObterAtivoPorIdAsync(idServico);
+            var servico = await _servicos.ObterAtivoPorIdAsync(idServico, cancellationToken);
 
             if (servico is null)
                 throw new NotFoundException(
@@ -55,7 +56,8 @@ namespace BarbeariaCore.UseCases.Agendamentos
             var periodosOcupados =
                 await _agendaQuery.BuscarPeriodosOcupadosAsync(
                     idBarbeiro,
-                    data);
+                    data,
+                    cancellationToken);
 
             var disponiveis = new List<TimeOnly>();
 
@@ -81,9 +83,7 @@ namespace BarbeariaCore.UseCases.Agendamentos
                 if (!conflito)
                     disponiveis.Add(horarioGrade);
             }
-
             return disponiveis;
         }
-
     }
 }

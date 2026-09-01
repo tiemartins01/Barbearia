@@ -28,11 +28,11 @@ namespace BarbeariaCore.UseCases.Cliente
 
         public async Task ExecutarAsync(
             DTOAvaliacao avaliacao,
-            int idCliente)
+            int idCliente, CancellationToken cancellationToken)
         {
             var agendamento =
                 await _agendamento.ObterPorIdAsync(
-                    avaliacao.AgendamentoId);
+                    avaliacao.AgendamentoId, cancellationToken);
 
             if (agendamento is null)
                 throw new NotFoundException(
@@ -44,13 +44,15 @@ namespace BarbeariaCore.UseCases.Cliente
                     "RESOURCE_ACCESS_DENIED",
                     "Você não possui acesso a este agendamento.");
 
-            if (await _avaliacoes.ExisteParaAgendamentoAsync(agendamento.Id))
+            if (await _avaliacoes.ExisteParaAgendamentoAsync(agendamento.Id, cancellationToken))
                 throw new ConflictException(
                     "REVIEW_ALREADY_EXISTS",
                     "Este atendimento já possui avaliação.");
 
+            var agora = DateTime.UtcNow;
+
             // Autoridade do status fica no Aggregate.
-            agendamento.MarcarComoAvaliado();
+            agendamento.MarcarComoAvaliado(agora);
 
             var novaAvaliacao = new Avaliacao(
                 agendamento.BarbeiroId,
@@ -61,14 +63,13 @@ namespace BarbeariaCore.UseCases.Cliente
                 agendamento.DataAgendamento,
                 agendamento.ServicoId);
 
-            await _avaliacoes.AdicionarAsync(novaAvaliacao);
-            await _uow.SaveChangesAsync();
+            await _avaliacoes.AdicionarAsync(novaAvaliacao, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation(
                 "Avaliação realizada. Cliente={ClienteId} Agendamento={AgendamentoId}",
                 idCliente,
                 agendamento.Id);
         }
-
     }
 }

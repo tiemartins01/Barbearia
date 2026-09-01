@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BarbeariaCore.Infrastructure.Configuration
 {
-    public class ServicosConfiguration : IEntityTypeConfiguration<Servico>
+    public class ServicoConfiguration : IEntityTypeConfiguration<Servico>
     {
 
         public void Configure(EntityTypeBuilder<Servico> e)

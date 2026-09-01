@@ -3,9 +3,11 @@
     public class DTOServicoValido
     {
         public int Id { get; set; }
-        public int Id_cliente { get; set; }
-        public int Id_barbeiro { get; set; }
-        public int Id_servico { get; set; }
+        public int ClienteId { get; set; }
+
+        public int BarbeiroId { get; set; }
+
+        public int ServicoId { get; set; }
         public DateTime Horario { get; set; }
     }
 }

@@ -1,8 +1,9 @@
 ﻿using BarbeariaCore.Domain.Exceptions;
+using BarbeariaCore.Domain.Common;
 
 namespace BarbeariaCore.Domain.Entities
 {
-    public sealed class Servico
+    public sealed class Servico : AggregateRoot
     {
 
         public int Id { get; private set; }

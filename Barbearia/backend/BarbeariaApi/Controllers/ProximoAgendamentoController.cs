@@ -37,19 +37,25 @@ namespace BarbeariaApi.Controllers
 
         [HttpGet("proximo")]
         [HttpGet("~/api/v1/appointments/next")]
-        public async Task<IActionResult> ProximoAgendamento() => Ok(await _service.ExecutarAsync(_user.UserId));
+        public async Task<IActionResult> ProximoAgendamento(CancellationToken cancellationToken)
+        {
+            var proximo = await _service.ExecutarAsync(_user.UserId, cancellationToken);
+            return Ok(proximo);
+        }
 
         [HttpGet("horarioslivres")]
         [HttpGet("~/api/v1/appointments/available-slots")]
         public async Task<IActionResult> ConsultarHorariosLivres(
      [FromQuery] int id_barbeiro,
      [FromQuery] int id_servico,
-     [FromQuery] DateOnly data)
+     [FromQuery] DateOnly data,
+     CancellationToken cancellationToken)
         {
             var horarios = await _disponiveis.ExecutarAsync(
                 id_barbeiro,
                 id_servico,
-                data);
+                data,
+                cancellationToken);
 
             return Ok(horarios);
         }
@@ -77,10 +83,10 @@ namespace BarbeariaApi.Controllers
                 "POST:/api/v1/appointments",
                 requestHash,
                 () => _criar.ExecutarAsync(
-                    request.Id_barbeiro,
+                    request.BarbeiroId,
                     _user.UserId,
-                    request.Id_servico,
-                    request.horario),
+                    request.ServicoId,
+                    request.Horario,cancellationToken),
                 cancellationToken);
 
             Response.Headers["Idempotency-Replayed"] = result.Replayed ? "true" : "false";

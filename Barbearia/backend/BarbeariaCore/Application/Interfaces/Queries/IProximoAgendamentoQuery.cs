@@ -6,6 +6,6 @@ namespace BarbeariaCore.Application.Interfaces.Queries
     {
         Task<DTOProximoAgendamento?> ObterAsync(
             int clienteId,
-            DateTime agora);
+            DateTime agora, CancellationToken cancellationToken);
     }
 }

@@ -15,7 +15,7 @@ namespace BarbeariaInfrastructure.Queries
             _context = context;
         }
 
-        public async Task<DTODadosPessoais?> ConsultarAsync(int clienteId)
+        public async Task<DTODadosPessoais?> ConsultarDadosPessoaisAsync(int clienteId, CancellationToken cancellationToken = default)
         {
             var dados = await _context.Usuarios
                 .AsNoTracking()
@@ -25,14 +25,14 @@ namespace BarbeariaInfrastructure.Queries
                     x.Id,
                     x.Nome,
                     Email = x.Email.Valor,
-                    Telefone = x.Numero.Valor,
-                    Cpf = x.CPF.Valor,
+                    Telefone = x.Telefone.Valor,
+                    Cpf = x.Cpf.Valor,
                     QtdCortes = _context.Agendamentos.Count(a =>
                         a.ClienteId == x.Id &&
                         (a.Status == StatusAgendamento.Concluido ||
                          a.Status == StatusAgendamento.Avaliado))
                 })
-                .SingleOrDefaultAsync();
+                .SingleOrDefaultAsync(cancellationToken);
 
             if (dados is null)
                 return null;

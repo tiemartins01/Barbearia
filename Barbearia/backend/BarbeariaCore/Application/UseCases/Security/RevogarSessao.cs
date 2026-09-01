@@ -15,12 +15,12 @@ namespace BarbeariaCore.UseCases.Security
             _uow = uow;
         }
 
-        public async Task ExecutarAsync(int userId, int sessionId)
+        public async Task ExecutarAsync(int userId, int sessionId, CancellationToken cancellationToken)
         {
-            if (!await _repository.RevokeByIdAsync(sessionId, userId))
+            if (!await _repository.RevokeByIdAsync(sessionId, userId,cancellationToken))
                 throw new NotFoundException("SESSION_NOT_FOUND", "Sessão não encontrada.");
 
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
         }
 
     }

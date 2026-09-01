@@ -13,15 +13,15 @@ namespace BarbeariaCore.UseCases.Security
             _uow = uow;
             _repository = repository;
         }
-        public async Task ExecutarAsync(string refreshToken)
+        public async Task ExecutarAsync(string refreshToken, CancellationToken cancellationToken)
         {
-            var token = await _repository.GetAsync(refreshToken);
+            var token = await _repository.GetAsync(refreshToken, cancellationToken);
             if (token is null || token.Revogado)
                 throw new AuthenticationException("INVALID_REFRESH",
     "Credenciais inválidas.");
 
-            await _repository.RevokeAsync(refreshToken, null, "LOGOUT");
-            await _uow.SaveChangesAsync();
+            await _repository.RevokeAsync(refreshToken, null, "LOGOUT", cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
         }
     }
 }

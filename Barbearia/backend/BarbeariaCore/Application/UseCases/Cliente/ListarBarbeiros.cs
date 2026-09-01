@@ -13,9 +13,9 @@ namespace BarbeariaCore.UseCases.Cliente
             _query = query;
         }
 
-        public async Task<IReadOnlyList<DTOBarbeiro>> ExecutarAsync()
+        public async Task<IReadOnlyList<DTOBarbeiro>> ExecutarAsync(CancellationToken cancellationToken)
         {
-            return await _query.ListarAtivosAsync();
+            return await _query.ListarBarbeirosAsync(cancellationToken);
         }
 
 

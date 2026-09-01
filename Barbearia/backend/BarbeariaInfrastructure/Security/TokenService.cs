@@ -50,7 +50,7 @@ namespace BarbeariaInfrastructure.Security
                 issuer: _iconfiguration["Jwt:Issuer"],
                 audience: _iconfiguration["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(15),
+                expires: DateTime.UtcNow.AddMinutes(15),
                 signingCredentials: creds
             );
 

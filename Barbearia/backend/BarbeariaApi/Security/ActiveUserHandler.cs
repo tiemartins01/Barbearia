@@ -19,11 +19,13 @@ public sealed class ActiveUserHandler : AuthorizationHandler<ActiveUserRequireme
 {
     private readonly AppDbContext _db;
     private readonly ICurrentUser _currentUser;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ActiveUserHandler(AppDbContext db, ICurrentUser currentUser)
+    public ActiveUserHandler(AppDbContext db, ICurrentUser currentUser, IHttpContextAccessor httpContextAccessor)
     {
         _db = db;
         _currentUser = currentUser;
+        _httpContextAccessor = httpContextAccessor;
     }
     // Faz a verificação/autenticação do usuário
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, ActiveUserRequirement requirement)
@@ -31,8 +33,10 @@ public sealed class ActiveUserHandler : AuthorizationHandler<ActiveUserRequireme
         if (!_currentUser.IsAuthenticated)
             return;
 
+        var cancellationToken = _httpContextAccessor.HttpContext?.RequestAborted ?? CancellationToken.None;
+
         var active = await _db.Usuarios.AsNoTracking()
-            .AnyAsync(x => x.Id == _currentUser.UserId && x.Ativado);
+            .AnyAsync(x => x.Id == _currentUser.UserId && x.Ativado, cancellationToken);
 
         if (active)
             context.Succeed(requirement);

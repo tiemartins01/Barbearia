@@ -15,7 +15,7 @@ namespace BarbeariaInfrastructure.Queries
             _context = context;
         }
 
-        public async Task<IReadOnlyList<DTOBarbeiro>> ListarAtivosAsync()
+        public async Task<IReadOnlyList<DTOBarbeiro>> ListarBarbeirosAsync(CancellationToken cancellationToken = default)
         {
             var barbeiros = await _context.Barbeiros
                 .AsNoTracking()
@@ -34,7 +34,7 @@ namespace BarbeariaInfrastructure.Queries
                     QuantidadeAvaliacoes = _context.Avaliacoes
                         .Count(a => a.BarbeiroId == b.Id)
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return barbeiros
                 .Select(x => new DTOBarbeiro

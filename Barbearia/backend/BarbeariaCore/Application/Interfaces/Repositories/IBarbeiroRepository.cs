@@ -4,10 +4,10 @@ namespace BarbeariaCore.Application.Interfaces.Repositories
 {
     public interface IBarbeiroRepository
     {
-        Task<Barbeiro?> ObterPorIdAsync(int barbeiroId);
-        Task<bool> ExisteAtivoAsync(int barbeiroId);
+        Task<Barbeiro?> ObterPorIdAsync(int barbeiroId, CancellationToken cancellationToken = default);
+        Task<bool> ExisteAtivoAsync(int barbeiroId, CancellationToken cancellationToken = default);
 
-        Task AdicionarAsync(Barbeiro barbeiro);
-        Task AtualizarAsync(Barbeiro barbeiro);
+        Task AdicionarAsync(Barbeiro barbeiro, CancellationToken cancellationToken = default);
+        Task AtualizarAsync(Barbeiro barbeiro, CancellationToken cancellationToken = default);
     }
 }

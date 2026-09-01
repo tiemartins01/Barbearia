@@ -4,14 +4,15 @@ namespace BarbeariaCore.Application.Interfaces.Repositories
 {
     public interface IAgendamentoRepository
     {
-        Task<Agendamento?> ObterPorIdAsync(int agendamentoId);
+        Task<Agendamento?> ObterPorIdAsync(int agendamentoId, CancellationToken cancellationToken = default);
 
         Task<bool> ExisteConflitoAsync(
             int barbeiroId,
             DateTime inicio,
-            DateTime fim);
+            DateTime fim,
+            CancellationToken cancellationToken = default);
 
-        Task AdicionarAsync(Agendamento agendamento);
-        Task AtualizarAsync(Agendamento agendamento);
+        Task AdicionarAsync(Agendamento agendamento,CancellationToken cancellationToken = default);
+        Task AtualizarAsync(Agendamento agendamento, CancellationToken cancellationToken = default);
     }
 }

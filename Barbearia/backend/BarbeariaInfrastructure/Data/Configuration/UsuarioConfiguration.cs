@@ -41,13 +41,13 @@ namespace BarbeariaInfrastructure.Configuration
                 email.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_email");
             });
 
-            e.OwnsOne(x => x.Numero, phone =>
+            e.OwnsOne(x => x.Telefone, phone =>
             {
                 phone.Property(p => p.Valor).HasColumnName("numero").IsRequired();
                 phone.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_telefone");
             });
 
-            e.OwnsOne(x => x.CPF, cpf =>
+            e.OwnsOne(x => x.Cpf, cpf =>
             {
                 cpf.Property(p => p.Valor).HasColumnName("cpf").IsRequired();
                 cpf.HasIndex(p => p.Valor).IsUnique().HasDatabaseName("ux_usuario_cpf");

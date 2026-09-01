@@ -78,9 +78,9 @@ namespace BarbeariaApi.Controllers
         [HttpPost("~/api/v1/auth/login")]
         [EnableRateLimiting("login")]
         [IgnoreAntiforgeryToken]
-        public async Task<IActionResult> Login([FromBody] DTOLoginUsuario request)
+        public async Task<IActionResult> Login([FromBody] DTOLoginUsuario request, CancellationToken cancellationToken)
         {
-            var resultado = await _service.ExecutarAsync(request.Nome, request.Senha);
+            var resultado = await _service.ExecutarAsync(request.Nome, request.Senha, cancellationToken);
 
             SalvarCookies(resultado);
 
@@ -91,7 +91,7 @@ namespace BarbeariaApi.Controllers
         [HttpPost("logout")]
         [HttpPost("~/api/v1/auth/logout")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(CancellationToken cancellationToken)
         {
             var refresh = Request.Cookies[RefreshCookie];
 
@@ -99,7 +99,7 @@ namespace BarbeariaApi.Controllers
             {
                 try
                 {
-                    await _revogartoken.ExecutarAsync(refresh);
+                    await _revogartoken.ExecutarAsync(refresh, cancellationToken);
                 }
                 catch (Exception ex)
                 {
@@ -120,14 +120,14 @@ namespace BarbeariaApi.Controllers
         [HttpPost("~/api/v1/auth/refresh")]
         [ValidateAntiForgeryToken]
         [EnableRateLimiting("refresh")]
-        public async Task<IActionResult> Refresh()
+        public async Task<IActionResult> Refresh(CancellationToken cancellationToken)
         {
             var refreshToken = Request.Cookies[RefreshCookie];
 
             if (string.IsNullOrWhiteSpace(refreshToken))
                 return Unauthorized();
 
-            var resultado = await _renovartoken.ExecutarAsync(refreshToken);
+            var resultado = await _renovartoken.ExecutarAsync(refreshToken, cancellationToken);
 
             //Response.Cookies.Append("teste", "123");
 
@@ -139,10 +139,10 @@ namespace BarbeariaApi.Controllers
         [Authorize]
         [HttpGet("sessions")]
         [HttpGet("~/api/v1/auth/sessions")]
-        public async Task<IActionResult> Sessions()
+        public async Task<IActionResult> Sessions(CancellationToken cancellationToken)
         {
             var current = Request.Cookies[RefreshCookie];
-            var sessions = await _listasessoes.ExecutarAsync(_user.UserId, current);
+            var sessions = await _listasessoes.ExecutarAsync(_user.UserId, current, cancellationToken);
             return Ok(sessions);
         }
 
@@ -150,9 +150,9 @@ namespace BarbeariaApi.Controllers
         [HttpDelete("sessions")]
         [HttpDelete("~/api/v1/auth/sessions")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RevokeAllSessions()
+        public async Task<IActionResult> RevokeAllSessions(CancellationToken cancellationToken)
         {
-            await _revogartodassessoes.ExecutarAsync(_user.UserId);
+            await _revogartodassessoes.ExecutarAsync(_user.UserId, cancellationToken);
             Response.Cookies.Delete(RefreshCookie, CookieOptionsRefresh());
             Response.Cookies.Delete(AccessCookie, CookieOptionsAccess());
             return NoContent();
@@ -163,9 +163,9 @@ namespace BarbeariaApi.Controllers
         [HttpDelete("sessions/{sessionId:int}")]
         [HttpDelete("~/api/v1/auth/sessions/{sessionId:int}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RevokeSession([FromRoute] int sessionId)
+        public async Task<IActionResult> RevokeSession([FromRoute] int sessionId, CancellationToken cancellationToken)
         {
-            await _revogarsessao.ExecutarAsync(_user.UserId, sessionId);
+            await _revogarsessao.ExecutarAsync(_user.UserId, sessionId, cancellationToken);
             return NoContent();
         }
 
@@ -207,12 +207,12 @@ namespace BarbeariaApi.Controllers
         {
             Response.Cookies.Append(
                 AccessCookie,
-                dto.accessToken,
+                dto.AccessToken,
                 CookieOptionsAccess());
 
             Response.Cookies.Append(
                 RefreshCookie,
-                dto.refreshToken,
+                dto.RefreshToken,
                 CookieOptionsRefresh());
         }
     }

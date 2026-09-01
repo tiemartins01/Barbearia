@@ -1,6 +1,4 @@
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Exceptions;
-using BarbeariaCore.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using BarbeariaCore.UseCases.Autenticacao;
@@ -23,10 +21,10 @@ namespace BarbeariaApi.Controllers
         [HttpPost("~/api/v1/password/recovery")]
         [IgnoreAntiforgeryToken]
         [EnableRateLimiting("recuperacao-senha")]
-        public async Task<IActionResult> EnviarEmail([FromBody] DTOEnviarEmail request)
+        public async Task<IActionResult> EnviarEmail([FromBody] DTOEnviarEmail request, CancellationToken cancellationToken)
         {
                                   
-            await _service.ExecutarAsync(request.Email);
+            await _service.ExecutarAsync(request.Email, cancellationToken);
 
             return Ok(new
             {

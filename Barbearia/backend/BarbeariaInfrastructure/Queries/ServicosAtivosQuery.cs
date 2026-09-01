@@ -14,7 +14,7 @@ namespace BarbeariaInfrastructure.Queries
             _context = context;
         }
 
-        public async Task<IReadOnlyList<DTOServicosAtivos>> ListarAsync()
+        public async Task<IReadOnlyList<DTOServicosAtivos>> ListarAsync(CancellationToken cancellationToken = default)
         {
             return await _context.Servicos
                 .AsNoTracking()
@@ -27,7 +27,7 @@ namespace BarbeariaInfrastructure.Queries
                     Duracao = x.Duracao,
                     Preco = x.Preco
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
     }
 }

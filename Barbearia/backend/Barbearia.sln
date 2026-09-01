@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Barbearia.Migrations.SqlSer
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Barbearia.Migrations.MySql", "Barbearia.Migrations.MySql\Barbearia.Migrations.MySql.csproj", "{4ED62038-5DBE-43E5-A9A8-98C7E136AC32}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BarbeariaTests", "BarbeariaTests\BarbeariaTests.csproj", "{D4257993-4193-4B32-AC76-04F51A7BD064}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +108,18 @@ Global
 		{4ED62038-5DBE-43E5-A9A8-98C7E136AC32}.Release|x64.Build.0 = Release|Any CPU
 		{4ED62038-5DBE-43E5-A9A8-98C7E136AC32}.Release|x86.ActiveCfg = Release|Any CPU
 		{4ED62038-5DBE-43E5-A9A8-98C7E136AC32}.Release|x86.Build.0 = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|x64.Build.0 = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Debug|x86.Build.0 = Debug|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|x64.ActiveCfg = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|x64.Build.0 = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|x86.ActiveCfg = Release|Any CPU
+		{D4257993-4193-4B32-AC76-04F51A7BD064}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

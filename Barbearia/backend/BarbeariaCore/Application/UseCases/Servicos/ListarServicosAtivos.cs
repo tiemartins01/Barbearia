@@ -11,9 +11,9 @@ namespace BarbeariaCore.UseCases.Servicos
         {
           _query = query;
         }
-        public Task<IReadOnlyList<DTOServicosAtivos>> ExecutarAsync()
+        public Task<IReadOnlyList<DTOServicosAtivos>> ExecutarAsync(CancellationToken cancellationToken)
         {
-            return _query.ListarAsync();
+            return _query.ListarAsync(cancellationToken);
         }
 
     }

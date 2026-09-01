@@ -12,24 +12,27 @@ namespace BarbeariaCore.UseCases.Autenticacao
         private readonly IEnviarEmail _enviar;
         private readonly IUnitOfWork _uow;
         private readonly ILogger<SolicitarRecuperacaoSenha> _logger;
+        private readonly ICodigoRecuperacaoGenerator _codigoGenerator;
 
         public SolicitarRecuperacaoSenha(
             IUsuarioRepository usuarios,
             IEnviarEmail enviar,
             IUnitOfWork uow,
-            ILogger<SolicitarRecuperacaoSenha> logger)
+            ILogger<SolicitarRecuperacaoSenha> logger,
+            ICodigoRecuperacaoGenerator codigoGenerator)
         {
             _usuarios = usuarios;
             _enviar = enviar;
             _uow = uow;
             _logger = logger;
+            _codigoGenerator = codigoGenerator;
         }
 
-        public async Task ExecutarAsync(string email)
+        public async Task ExecutarAsync(string email, CancellationToken cancellationToken = default)
         {
             email = email.Trim().ToLowerInvariant();
 
-            var usuario = await _usuarios.ObterPorEmailAsync(email);
+            var usuario = await _usuarios.ObterPorEmailAsync(email, cancellationToken);
 
             if (usuario is null)
             {
@@ -37,13 +40,13 @@ namespace BarbeariaCore.UseCases.Autenticacao
                 return;
             }
 
-            var agora = DateTime.Now;
-            var codigo = CodeGenerator.GerarCod();
+            var agora = DateTime.UtcNow;
+            var codigo = _codigoGenerator.Gerar();
 
             usuario.GerarCodigo(codigo, agora);
 
-            await _usuarios.AtualizarAsync(usuario);
-            await _uow.SaveChangesAsync();
+            await _usuarios.AtualizarAsync(usuario, cancellationToken);
+            await _uow.SaveChangesAsync(cancellationToken);
 
             var mensagem = $"""
                 <p>Olá {usuario.Nome},</p>
@@ -55,7 +58,7 @@ namespace BarbeariaCore.UseCases.Autenticacao
             await _enviar.EnviarEmailAsync(
                 usuario.Email.Valor,
                 "Troca de senha",
-                mensagem);
+                mensagem, cancellationToken);
 
             _logger.LogInformation(
                 "Código de recuperação enviado para {Email}",

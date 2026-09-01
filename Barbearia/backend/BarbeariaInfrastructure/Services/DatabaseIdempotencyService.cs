@@ -81,7 +81,7 @@ public sealed class DatabaseIdempotencyService : IIdempotencyService
     private static IdempotencyExecutionResult<T> Replay<T>(IdempotencyRecord record, string requestHash)
     {
 
-        var agora = DateTime.Now;
+        var agora = DateTime.UtcNow;
 
         if (!string.Equals(record.RequestHash, requestHash, StringComparison.Ordinal))
             throw new ConflictException("IDEMPOTENCY_REQUEST_CONFLICT", "A mesma chave foi reutilizada com dados diferentes.");

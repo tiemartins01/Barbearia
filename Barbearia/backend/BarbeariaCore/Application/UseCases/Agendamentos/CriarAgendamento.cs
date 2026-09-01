@@ -34,18 +34,19 @@ namespace BarbeariaCore.UseCases.Agendamentos
             int idBarbeiro,
             int idUsuario,
             int idServico,
-            DateTime horario)
+            DateTime horario,
+            CancellationToken cancellationToken)
         {
             ValidarIds(idBarbeiro, idUsuario, idServico);
 
-            var agora = DateTime.Now;
+            var agora = DateTime.UtcNow;
 
-            if (!await _barbeiros.ExisteAtivoAsync(idBarbeiro))
+            if (!await _barbeiros.ExisteAtivoAsync(idBarbeiro, cancellationToken))
                 throw new NotFoundException(
                     "BARBER_NOT_FOUND",
                     "Barbeiro não encontrado.");
 
-            var servico = await _servicos.ObterAtivoPorIdAsync(idServico);
+            var servico = await _servicos.ObterAtivoPorIdAsync(idServico, cancellationToken);
 
             if (servico is null)
                 throw new NotFoundException(
@@ -58,7 +59,8 @@ namespace BarbeariaCore.UseCases.Agendamentos
                 await _agendamentos.ExisteConflitoAsync(
                     idBarbeiro,
                     horario,
-                    fim);
+                    fim,
+                    cancellationToken);
 
             try
             {
@@ -80,19 +82,19 @@ namespace BarbeariaCore.UseCases.Agendamentos
                 horario,
                 agora);
 
-            await _uow.BeginTransactionAsync();
+            await _uow.BeginTransactionAsync(cancellationToken);
 
             try
             {
-                await _agendamentos.AdicionarAsync(agendamento);
+                await _agendamentos.AdicionarAsync(agendamento, cancellationToken);
 
-                await _uow.SaveChangesAsync();
+                await _uow.SaveChangesAsync(cancellationToken);
 
-                agendamento.RegistrarCriacao();
+                agendamento.RegistrarCriacao(agora);
 
-                await _uow.SaveChangesAsync();
+                await _uow.SaveChangesAsync(cancellationToken);
 
-                await _uow.CommitTransactionAsync();
+                await _uow.CommitTransactionAsync(cancellationToken);
 
                 return new DTOResposta
                 {
@@ -103,7 +105,7 @@ namespace BarbeariaCore.UseCases.Agendamentos
             catch (PersistenceConflictException ex)
                 when (ex.Code == "APPOINTMENT_TIME_CONFLICT")
             {
-                await _uow.RollbackAsync();
+                await _uow.RollbackAsync(cancellationToken);
 
                 _logger.LogWarning(
                     ex,
@@ -117,7 +119,7 @@ namespace BarbeariaCore.UseCases.Agendamentos
             }
             catch (Exception ex)
             {
-                await _uow.RollbackAsync();
+                await _uow.RollbackAsync(cancellationToken);
 
                 _logger.LogError(
                     ex,
@@ -147,6 +149,5 @@ namespace BarbeariaCore.UseCases.Agendamentos
                 throw new ValidationException("SERVICE_ID_INVALID",
                     "O identificador do serviço é inválido.");
         }
-
     }
 }

@@ -1,17 +1,21 @@
 using BarbeariaCore.Application.Models;
+using System.Threading;
 
 namespace BarbeariaCore.Application.Interfaces
 {
     public interface IRefreshRepository
     {
-        Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm);
-        Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm, Guid familyId, string? createdByIp);
-        Task<RefreshTokenData?> GetAsync(string token);
-        Task RevokeAsync(string token);
-        Task RevokeAsync(string token, string? replacedByToken, string? reason);
-        Task<IReadOnlyList<RefreshTokenData>> ListByUserAsync(int userId);
-        Task RevokeAllByUserAsync(int userId);
-        Task RevokeFamilyAsync(Guid familyId, string reason);
-        Task<bool> RevokeByIdAsync(int sessionId, int userId);
+        Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm, CancellationToken cancellationToken = default);
+        Task SaveAsync(int usuarioId, string refreshToken, DateTime expiraEm, Guid familyId, string? createdByIp
+            , CancellationToken cancellationToken = default);
+        Task<RefreshTokenData?> GetAsync(string token, CancellationToken cancellationToken = default);
+        Task RevokeAsync(string token, CancellationToken cancellationToken = default);
+        Task RevokeAsync(string token, string? replacedByToken, string? reason
+            , CancellationToken cancellationToken = default);
+        Task<IReadOnlyList<RefreshTokenData>> ListByUserAsync(int userId
+            , CancellationToken cancellationToken = default);
+        Task RevokeAllByUserAsync(int userId, CancellationToken cancellationToken = default);
+        Task RevokeFamilyAsync(Guid familyId, string reason,CancellationToken cancellationToken = default);
+        Task<bool> RevokeByIdAsync(int sessionId, int userId, CancellationToken cancellationToken = default );
     }
 }

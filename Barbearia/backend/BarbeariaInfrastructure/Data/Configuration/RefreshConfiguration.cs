@@ -13,10 +13,10 @@ namespace BarbeariaInfrastructure.Configuration
 
             builder.HasKey(x => x.Id);
             builder.Property(x => x.Id).HasColumnName("id");
-            builder.Property(x => x.Id_usuario).IsRequired().HasColumnName("usuario_id");
+            builder.Property(x => x.UsuarioId).IsRequired().HasColumnName("usuario_id");
             builder.Property(x => x.Token).IsRequired().HasMaxLength(512).HasColumnName("token");
-            builder.Property(x => x.ExpiraEM).IsRequired().HasColumnName("expira_em");
-            builder.Property(x => x.CriadoEM).IsRequired().HasColumnName("criado_em");
+            builder.Property(x => x.ExpiraEm).IsRequired().HasColumnName("expira_em");
+            builder.Property(x => x.CriadoEm).IsRequired().HasColumnName("criado_em");
             builder.Property(x => x.Revogado).IsRequired().HasColumnName("revogado");
             builder.Property(x => x.FamilyId).IsRequired().HasColumnName("family_id");
             builder.Property(x => x.ReplacedByToken).HasMaxLength(512).HasColumnName("replaced_by_token");
@@ -26,9 +26,9 @@ namespace BarbeariaInfrastructure.Configuration
 
             builder.HasIndex(x => x.Token).IsUnique().HasDatabaseName("ux_refresh_token_token");
             builder.HasIndex(x => x.FamilyId).HasDatabaseName("ix_refresh_token_family");
-            builder.HasIndex(x => new { x.Id_usuario, x.Revogado, x.ExpiraEM })
+            builder.HasIndex(x => new { x.UsuarioId, x.Revogado, x.ExpiraEm })
                 .HasDatabaseName("ix_refresh_token_usuario_revogado_expira");
-            builder.HasOne<Usuario>().WithMany().HasForeignKey(x => x.Id_usuario).OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne<Usuario>().WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

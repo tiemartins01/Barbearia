@@ -29,19 +29,32 @@ namespace BarbeariaCore.UseCases.Autenticacao
             string codigo,
             string email,
             string senha,
-            string senhaRepetida)
+            string senhaRepetida,
+            CancellationToken cancellationToken)
         {
-            email = email.Trim().ToLowerInvariant();
-            var agora = DateTime.Now;
+            
 
-            var usuario = await _usuarios.ObterPorEmailAsync(email);
+            if (!string.Equals(
+           senha,
+           senhaRepetida,
+           StringComparison.Ordinal))
+            {
+                throw new ValidationException(
+                    "PASSWORD_RESET_PASSWORD_MISMATCH",
+                    "Dados inválidos!");
+            }
+
+            PoliticaSenha.Validar(senha);
+
+            email = email.Trim().ToLowerInvariant();
+            var agora = DateTime.UtcNow;
+
+            var usuario = await _usuarios.ObterPorEmailAsync(email, cancellationToken);
 
             if (usuario is null || !usuario.Ativado)
                 throw new AuthenticationException(
                     "PASSWORD_RESET_INVALID_DATA",
                     "Dados inválidos!");
-
-            PoliticaSenha.Validar(senha);
 
             if (!string.Equals(senha, senhaRepetida, StringComparison.Ordinal))
                 throw new ValidationException(
@@ -56,8 +69,8 @@ namespace BarbeariaCore.UseCases.Autenticacao
             if (!usuario.PodeTrocarSenha(codigo, agora))
             {
                 usuario.RegistrarFalhaTrocaSenha();
-                await _usuarios.AtualizarAsync(usuario);
-                await _uow.SaveChangesAsync();
+                await _usuarios.AtualizarAsync(usuario, cancellationToken);
+                await _uow.SaveChangesAsync(cancellationToken);
 
                 throw new AuthenticationException(
                     "PASSWORD_RESET_INVALID_CODE",
@@ -67,10 +80,10 @@ namespace BarbeariaCore.UseCases.Autenticacao
             var senhaHash = _passwordHash.Hash(senha);
             var senhaDominio = Senha.DeHash(senhaHash);
 
-            usuario.AlterarSenha(senhaDominio);
+            usuario.RedefinirSenha(senhaDominio, agora);
 
             await _usuarios.AtualizarAsync(usuario);
-            await _uow.SaveChangesAsync();
+            await _uow.SaveChangesAsync(cancellationToken);
 
             return new DTOResposta
             {

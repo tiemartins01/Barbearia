@@ -1,5 +1,4 @@
 using BarbeariaCore.Domain.Common;
-using BarbeariaCore.Domain.Entities;
 using BarbeariaCore.Domain.Enum;
 using BarbeariaCore.Domain.Events;
 using BarbeariaCore.Domain.Exceptions;
@@ -46,7 +45,9 @@ public sealed class Agendamento : AggregateRoot
         private set;
     }
 
-    private Agendamento() { }
+    private Agendamento()
+    {
+    }
 
     public Agendamento(
         int clienteId,
@@ -56,26 +57,11 @@ public sealed class Agendamento : AggregateRoot
         DateTime dataAgendamento,
         DateTime agora)
     {
-        if (clienteId <= 0)
-        {
-            throw new DomainException(
-                "APPOINTMENT_INVALID_CLIENT",
-                "Cliente inválido.");
-        }
+        ValidarCliente(clienteId);
 
-        if (barbeiroId <= 0)
-        {
-            throw new DomainException(
-                "APPOINTMENT_INVALID_BARBER",
-                "Barbeiro inválido.");
-        }
+        ValidarBarbeiro(barbeiroId);
 
-        if (servicoId <= 0)
-        {
-            throw new DomainException(
-                "APPOINTMENT_INVALID_SERVICE",
-                "Serviço inválido.");
-        }
+        ValidarServico(servicoId);
 
         PoliticaAgenda.ValidarDuracao(
             duracaoMinutos);
@@ -93,8 +79,11 @@ public sealed class Agendamento : AggregateRoot
                 duracaoMinutos);
 
         ClienteId = clienteId;
+
         BarbeiroId = barbeiroId;
+
         ServicoId = servicoId;
+
         DuracaoMinutos = duracaoMinutos;
 
         DataAgendamento =
@@ -110,13 +99,14 @@ public sealed class Agendamento : AggregateRoot
             StatusAgendamento.Agendado;
     }
 
-    public void RegistrarCriacao()
+    public void RegistrarCriacao(
+        DateTime ocorridoEmUtc)
     {
         if (Id <= 0)
         {
             throw new DomainException(
                 "APPOINTMENT_INVALID_ID",
-                "Agendamento ainda não possui um identificador válido.");
+                "Agendamento ainda não foi persistido.");
         }
 
         AddDomainEvent(
@@ -125,31 +115,38 @@ public sealed class Agendamento : AggregateRoot
                 ClienteId,
                 BarbeiroId,
                 ServicoId,
-                DataAgendamento));
+                DataAgendamento,
+                ocorridoEmUtc));
     }
 
-    public void Concluir()
+    public void Concluir(
+        DateTime ocorridoEmUtc)
     {
         AlterarStatus(
             StatusAgendamento.Concluido,
             StatusAgendamento.Agendado,
-            "Somente um agendamento ativo pode ser concluído.");
+            "Somente um agendamento ativo pode ser concluído.",
+            ocorridoEmUtc);
     }
 
-    public void Cancelar()
+    public void Cancelar(
+        DateTime ocorridoEmUtc)
     {
         AlterarStatus(
             StatusAgendamento.Cancelado,
             StatusAgendamento.Agendado,
-            "Somente um agendamento ativo pode ser cancelado.");
+            "Somente um agendamento ativo pode ser cancelado.",
+            ocorridoEmUtc);
     }
 
-    public void MarcarComoAvaliado()
+    public void MarcarComoAvaliado(
+        DateTime ocorridoEmUtc)
     {
         AlterarStatus(
             StatusAgendamento.Avaliado,
             StatusAgendamento.Concluido,
             "Somente um atendimento concluído pode ser avaliado.",
+            ocorridoEmUtc,
             "REVIEW_INVALID_APPOINTMENT_STATUS");
     }
 
@@ -157,6 +154,7 @@ public sealed class Agendamento : AggregateRoot
         StatusAgendamento novoStatus,
         StatusAgendamento statusEsperado,
         string mensagem,
+        DateTime ocorridoEmUtc,
         string codigo =
             "APPOINTMENT_INVALID_STATUS")
     {
@@ -167,14 +165,50 @@ public sealed class Agendamento : AggregateRoot
                 mensagem);
         }
 
-        var statusAnterior = Status;
+        var statusAnterior =
+            Status;
 
-        Status = novoStatus;
+        Status =
+            novoStatus;
 
         AddDomainEvent(
             new AgendamentoStatusAlteradoDomainEvent(
                 Id,
                 statusAnterior,
-                novoStatus));
+                novoStatus,
+                ocorridoEmUtc));
+    }
+
+    private static void ValidarCliente(
+        int clienteId)
+    {
+        if (clienteId <= 0)
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_CLIENT",
+                "Cliente inválido.");
+        }
+    }
+
+    private static void ValidarBarbeiro(
+        int barbeiroId)
+    {
+        if (barbeiroId <= 0)
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_BARBER",
+                "Barbeiro inválido.");
+        }
+    }
+
+    private static void ValidarServico(
+        int servicoId)
+    {
+        if (servicoId <= 0)
+        {
+            throw new DomainException(
+                "APPOINTMENT_INVALID_SERVICE",
+                "Serviço inválido.");
+        }
     }
 }

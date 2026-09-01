@@ -4,6 +4,6 @@ namespace BarbeariaCore.Application.Interfaces.Queries
 {
     public interface IDadosPessoaisQuery
     {
-        Task<DTODadosPessoais?> ConsultarAsync(int clienteId);
+        Task<DTODadosPessoais?> ConsultarDadosPessoaisAsync(int clienteId, CancellationToken cancellationToken);
     }
 }

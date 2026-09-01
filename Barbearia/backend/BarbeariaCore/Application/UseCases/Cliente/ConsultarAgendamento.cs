@@ -20,11 +20,11 @@ namespace BarbeariaCore.UseCases.Cliente
 
         public async Task<DTOHorarioDetalhes?> ExecutarAsync(
             int agendamentoId,
-            int clienteId)
+            int clienteId, CancellationToken cancellationToken)
         {
             var agendamento =
                 await _agendamentos.ObterPorIdAsync(
-                    agendamentoId);
+                    agendamentoId, cancellationToken);
 
             return agendamento is null
                 ? null
@@ -37,9 +37,9 @@ namespace BarbeariaCore.UseCases.Cliente
             return new DTOHorarioDetalhes
             {
                 Id = agendamento.Id,
-                IdCliente = agendamento.ClienteId,
-                IdBarbeiro = agendamento.BarbeiroId,
-                IdServico = agendamento.ServicoId,
+                ClienteId = agendamento.ClienteId,
+                BarbeiroId = agendamento.BarbeiroId,
+                ServicoId = agendamento.ServicoId,
                 Horario = agendamento.DataAgendamento,
                 Status = agendamento.Status
             };

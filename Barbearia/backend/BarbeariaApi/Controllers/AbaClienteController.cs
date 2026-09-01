@@ -1,8 +1,6 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
-using BarbeariaCore.Application.Interfaces.Repositories;
 using BarbeariaCore.UseCases.Cliente;
-using BarbeariaInfrastructure.Repository;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,14 +40,19 @@ namespace BarbeariaApi.Controllers
 
         [HttpGet("barbeiros")]
         [HttpGet("~/api/v1/barbers")]
-        public async Task<IActionResult> BarbeirosCadastrados() => Ok(await _listarBarbeiros.ExecutarAsync());
+        public async Task<IActionResult> BarbeirosCadastrados(CancellationToken cancellationToken)
+        {
+            var resultado = await _listarBarbeiros.ExecutarAsync(cancellationToken);
+            return Ok(resultado);
+        }
 
 
         [HttpGet("historico")]
         [HttpGet("~/api/v1/appointments/history")]
         public async Task<IActionResult> ObterHistorico(
     [FromQuery] int page = 1,
-    [FromQuery] int pageSize = 10)
+    [FromQuery] int pageSize = 10,
+    CancellationToken cancellationToken = default)
         {
             if (page < 1)
             {
@@ -67,7 +70,7 @@ namespace BarbeariaApi.Controllers
                 });
             }
 
-            var resultado = await _consultarHistorico.ExecutarAsync(_usuario.UserId, page, pageSize);
+            var resultado = await _consultarHistorico.ExecutarAsync(_usuario.UserId, page, pageSize, cancellationToken);
 
             return Ok(resultado);
         }
@@ -90,22 +93,29 @@ namespace BarbeariaApi.Controllers
 
         [HttpGet("dados")]
         [HttpGet("~/api/v1/users/me")]
-        public async Task<IActionResult> DadosPessais() => Ok(await _consultarDados.ExecutarAsync(_usuario.UserId));
+        public async Task<IActionResult> DadosPessais(CancellationToken cancellationToken)
+        {
+            var dados = await _consultarDados.ExecutarAsync(_usuario.UserId, cancellationToken);
+            return Ok(dados);
+        }
 
         [HttpPost("infoHorario")]
-        [HttpGet("~/api/v1/appointments/{idHorario:int}")]
-        public async Task<IActionResult> informacoesHorario([FromBody] DTOInfoHorario request, 
-            [FromRoute] int? idHorario = null)
-            => Ok(await _consultarAgendamento.ExecutarAsync(idHorario ?? request.IdHorario, _usuario.UserId));
+        [HttpGet("~/api/v1/appointments/{agendamentoId:int}")]
+        public async Task<IActionResult> informacoesHorario([FromBody] DTOInfoHorario request,
+            [FromRoute] int? idHorario = null, CancellationToken cancellationToken = default)
+        {
+            var informacoes = await _consultarAgendamento.ExecutarAsync(idHorario ?? request.AgendamentoId, _usuario.UserId, cancellationToken);
+            return Ok(informacoes);
+        }
 
         [HttpPost("alterarDados")]
         [HttpPatch("~/api/v1/users/me")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AlterarDadosPessoais([FromBody] DTOAlterandoDados request) 
+        public async Task<IActionResult> AlterarDadosPessoais([FromBody] DTOAlterandoDados request, CancellationToken cancellationToken) 
         {
             request.Id = _usuario.UserId;
 
-            await _alterarDados.ExecutarAsync(request);
+            await _alterarDados.ExecutarAsync(request, cancellationToken);
 
             return NoContent();
         }
@@ -113,9 +123,9 @@ namespace BarbeariaApi.Controllers
         [HttpPost("avaliacao")]
         [HttpPost("~/api/v1/reviews")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Avaliacao([FromBody] DTOAvaliacao request)
+        public async Task<IActionResult> Avaliacao([FromBody] DTOAvaliacao request, CancellationToken cancellationToken)
         {
-            await _avaliarAtendimento.ExecutarAsync(request, _usuario.UserId); 
+            await _avaliarAtendimento.ExecutarAsync(request, _usuario.UserId, cancellationToken); 
 
             return Ok(request);
         }

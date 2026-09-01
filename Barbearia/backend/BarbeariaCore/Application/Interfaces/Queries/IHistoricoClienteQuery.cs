@@ -4,9 +4,10 @@ namespace BarbeariaCore.Application.Interfaces.Queries
 {
     public interface IHistoricoClienteQuery
     {
-        Task<IReadOnlyList<DTOHistorico>> ConsultarAsync(
+        Task<IReadOnlyList<DTOHistorico>> ConsultarHistoricoAsync(
             int clienteId,
             int page,
-            int pageSize);
+            int pageSize,
+            CancellationToken cancellationToken);
     }
 }

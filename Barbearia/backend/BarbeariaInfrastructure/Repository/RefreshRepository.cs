@@ -18,14 +18,15 @@ namespace BarbeariaInfrastructure.Repository
         public Task SaveAsync(
             int usuarioId,
             string refreshToken,
-            DateTime expiraEm)
+            DateTime expiraEm, CancellationToken cancellationToken = default)
         {
             return SaveAsync(
                 usuarioId,
                 refreshToken,
                 expiraEm,
                 Guid.NewGuid(),
-                null);
+                null,
+                cancellationToken);
         }
 
         public async Task SaveAsync(
@@ -33,23 +34,21 @@ namespace BarbeariaInfrastructure.Repository
             string refreshToken,
             DateTime expiraEm,
             Guid familyId,
-            string? createdByIp)
+            string? createdByIp, CancellationToken cancellationToken = default)
         {
-            var token = new RefreshToken
-            {
-                Id_usuario = usuarioId,
-                Token = refreshToken,
-                ExpiraEM = ToUtc(expiraEm),
-                CriadoEM = DateTime.UtcNow,
-                Revogado = false,
-                FamilyId = familyId,
-                CreatedByIp = createdByIp
-            };
+            var token = new RefreshToken(
+                usuarioId,
+                refreshToken,
+                ToUtc(expiraEm),
+                familyId,
+                createdByIp,
+                DateTime.UtcNow
+            );
 
-            await _context.RefreshTokens.AddAsync(token);
+            await _context.RefreshTokens.AddAsync(token, cancellationToken);
         }
 
-        public async Task<RefreshTokenData?> GetAsync(string token)
+        public async Task<RefreshTokenData?> GetAsync(string token,CancellationToken cancellationToken = default)
         {
             return await _context.RefreshTokens
                 .AsNoTracking()
@@ -57,117 +56,120 @@ namespace BarbeariaInfrastructure.Repository
                 .Select(x => new RefreshTokenData
                 {
                     Id = x.Id,
-                    UsuarioId = x.Id_usuario,
+                    UsuarioId = x.UsuarioId,
                     Token = x.Token,
-                    ExpiraEm = x.ExpiraEM,
-                    CriadoEm = x.CriadoEM,
+                    ExpiraEm = x.ExpiraEm,
+                    CriadoEm = x.CriadoEm,
                     Revogado = x.Revogado,
                     FamilyId = x.FamilyId,
                     CreatedByIp = x.CreatedByIp,
                     ReplacedByToken = x.ReplacedByToken,
                     RevocationReason = x.RevocationReason
                 })
-                .FirstOrDefaultAsync();
+                .FirstOrDefaultAsync(cancellationToken);
         }
 
-        public Task RevokeAsync(string token)
+        public Task RevokeAsync(string token, CancellationToken cancellationToken = default)
         {
-            return RevokeAsync(token, null, null);
+            return RevokeAsync(token, null, null, cancellationToken);
         }
 
         public async Task RevokeAsync(
             string token,
             string? replacedByToken,
-            string? reason)
+            string? reason,
+            CancellationToken cancellationToken = default)
         {
             var refresh = await _context.RefreshTokens
-                .FirstOrDefaultAsync(x => x.Token == token);
+                .FirstOrDefaultAsync(x => x.Token == token, cancellationToken);
 
             if (refresh is null)
                 return;
 
-            refresh.Revogado = true;
-            refresh.RevokedAtUtc = DateTime.UtcNow;
-            refresh.ReplacedByToken = replacedByToken;
-            refresh.RevocationReason = reason;
+            refresh.Revogar(DateTime.UtcNow,
+            replacedByToken,
+            reason);
         }
 
         public async Task<IReadOnlyList<RefreshTokenData>>
-            ListByUserAsync(int userId)
+            ListByUserAsync(int userId, CancellationToken cancellationToken = default)
         {
             return await _context.RefreshTokens
                 .AsNoTracking()
-                .Where(x => x.Id_usuario == userId)
-                .OrderByDescending(x => x.CriadoEM)
+                .Where(x => x.UsuarioId == userId)
+                .OrderByDescending(x => x.CriadoEm)
                 .Select(x => new RefreshTokenData
                 {
                     Id = x.Id,
-                    UsuarioId = x.Id_usuario,
+                    UsuarioId = x.UsuarioId,
                     Token = x.Token,
-                    ExpiraEm = x.ExpiraEM,
-                    CriadoEm = x.CriadoEM,
+                    ExpiraEm = x.ExpiraEm,
+                    CriadoEm = x.CriadoEm,
                     Revogado = x.Revogado,
                     FamilyId = x.FamilyId,
                     CreatedByIp = x.CreatedByIp,
                     ReplacedByToken = x.ReplacedByToken,
                     RevocationReason = x.RevocationReason
                 })
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
         }
 
-        public async Task RevokeAllByUserAsync(int userId)
+        public async Task RevokeAllByUserAsync(int userId, CancellationToken cancellationToken)
         {
             var tokens = await _context.RefreshTokens
                 .Where(x =>
-                    x.Id_usuario == userId &&
+                    x.UsuarioId == userId &&
                     !x.Revogado)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             foreach (var token in tokens)
             {
-                token.Revogado = true;
-                token.RevokedAtUtc = DateTime.UtcNow;
-                token.RevocationReason =
-                    "REVOKE_ALL_SESSIONS";
+                token.Revogar(
+                    DateTime.UtcNow,
+                    null,
+                    "REVOKE_ALL_SESSIONS");
             }
         }
 
         public async Task RevokeFamilyAsync(
             Guid familyId,
-            string reason)
+            string reason,
+            CancellationToken cancellationToken)
         {
             var tokens = await _context.RefreshTokens
                 .Where(x =>
                     x.FamilyId == familyId &&
                     !x.Revogado)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             foreach (var token in tokens)
             {
-                token.Revogado = true;
-                token.RevokedAtUtc = DateTime.UtcNow;
-                token.RevocationReason = reason;
+                token.Revogar(
+                    DateTime.UtcNow,
+                    null,
+                    reason);
             }
         }
 
         public async Task<bool> RevokeByIdAsync(
             int sessionId,
-            int userId)
+            int userId,
+            CancellationToken cancellationToken)
         {
             var token = await _context.RefreshTokens
                 .FirstOrDefaultAsync(x =>
                     x.Id == sessionId &&
-                    x.Id_usuario == userId);
+                    x.UsuarioId == userId, cancellationToken);
 
             if (token is null)
                 return false;
 
             if (!token.Revogado)
             {
-                token.Revogado = true;
-                token.RevokedAtUtc = DateTime.UtcNow;
-                token.RevocationReason =
-                    "USER_REVOKED_SESSION";
+                token.Revogar(
+                DateTime.UtcNow,
+                null,
+                "USER_REVOKED_SESSION");
             }
 
             return true;

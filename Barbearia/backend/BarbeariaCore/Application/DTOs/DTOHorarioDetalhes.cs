@@ -6,9 +6,9 @@ namespace BarbeariaCore.Application.DTOs;
 public sealed class DTOHorarioDetalhes
 {
     public int Id { get; init; }
-    public int IdCliente { get; init; }
-    public int IdBarbeiro { get; init; }
-    public int IdServico { get; init; }
+    public int ClienteId { get; init; }
+    public int BarbeiroId { get; init; }
+    public int ServicoId { get; init; }
     public DateTime Horario { get; init; }
     public StatusAgendamento Status { get; init; }
 }

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BarbeariaCore.Infrastructure.Configuration
 {
-    public class AvaliacoesConfiguration : IEntityTypeConfiguration<Avaliacao>
+    public class AvaliacaoConfiguration : IEntityTypeConfiguration<Avaliacao>
     {
         public void Configure(EntityTypeBuilder<Avaliacao> e)
         {

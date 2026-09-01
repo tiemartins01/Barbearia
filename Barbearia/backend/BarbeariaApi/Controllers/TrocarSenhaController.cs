@@ -21,10 +21,10 @@ namespace BarbeariaApi.Controllers
         [HttpPost("~/api/v1/password/reset")]
         [IgnoreAntiforgeryToken]
         [EnableRateLimiting("troca-senha")]
-        public async Task<IActionResult> TrocarSenha([FromBody] DTOMudarSenha request)
+        public async Task<IActionResult> TrocarSenha([FromBody] DTOMudarSenha request, CancellationToken cancellationToken)
         {
                 var resultado = await _service.ExecutarAsync(request.Codigo, 
-                    request.Email, request.Senha, request.SenhaRepetida);
+                    request.Email, request.Senha, request.SenhaRepetida, cancellationToken);
                 return Ok(resultado);
         }
     }

@@ -19,9 +19,9 @@ namespace BarbeariaApi.Controllers
         [Authorize(Policy = "ClientOnly")]
         [HttpGet("ativos")]
         [HttpGet("~/api/v1/services")]
-        public async Task<IActionResult> ServicosAtivos()
+        public async Task<IActionResult> ServicosAtivos(CancellationToken cancellationToken)
         {
-            var servicos = await _service.ExecutarAsync();
+            var servicos = await _service.ExecutarAsync(cancellationToken);
 
             return Ok(servicos);
         }
