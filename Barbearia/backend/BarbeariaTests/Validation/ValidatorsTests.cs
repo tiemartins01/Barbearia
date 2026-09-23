@@ -21,7 +21,7 @@ public sealed class ValidatorsTests
 
     [Fact]
     public void NovoUsuario_Valido_Deve_Passar()
-        => Assert.True(new DTONovoUsuarioValidator().Validate(new DTONovoUsuario{Nome="Maria",Email="m@e.com",Phone="11999999999",CPF="52998224725",Login="maria",SenhaR="123456"}).IsValid);
+        => Assert.True(new DTONovoUsuarioValidator().Validate(new DTONovoUsuario{Nome="Maria",Email="m@e.com",Telefone="11999999999",Cpf="52998224725",Login="maria",Senha="123456"}).IsValid);
 
     [Fact]
     public void NovoUsuario_Campos_Obrigatorios_Devem_Falhar()

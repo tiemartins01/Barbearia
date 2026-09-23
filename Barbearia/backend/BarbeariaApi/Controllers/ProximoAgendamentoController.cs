@@ -1,5 +1,6 @@
 using BarbeariaCore.Application.Abstractions;
 using BarbeariaCore.Application.DTOs;
+using BarbeariaCore.Application.UseCases.Agendamentos;
 using BarbeariaCore.UseCases.Agendamentos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

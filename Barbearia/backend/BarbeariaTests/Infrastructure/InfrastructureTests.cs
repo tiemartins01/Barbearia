@@ -89,14 +89,14 @@ public sealed class InfrastructureTests : IDisposable
     [Fact]
     public async Task AgendamentoRepository_Deve_Ignorar_Agendamento_Cancelado_No_Conflito()
     {
-        var inicio=new DateTime(2026,9,1,10,0,0); var a=NovoAgendamento(1,5,inicio,60); a.Cancelar(); _db.Agendamentos.Add(a); await _db.SaveChangesAsync();
+        var inicio=new DateTime(2026,9,1,10,0,0); var a=NovoAgendamento(1,5,inicio,60); a.Cancelar(DateTime.UtcNow); _db.Agendamentos.Add(a); await _db.SaveChangesAsync();
         Assert.False(await new AgendamentoRepository(_db).ExisteConflitoAsync(5,inicio.AddMinutes(30),inicio.AddMinutes(90)));
     }
 
     [Fact]
     public async Task AgendaDisponibilidadeQuery_Deve_Retornar_Somente_Ativos_Do_Barbeiro_No_Dia()
     {
-        var data=new DateOnly(2026,9,1); var a1=NovoAgendamento(1,5,data.ToDateTime(new TimeOnly(10,0)),60); var a2=NovoAgendamento(2,5,data.ToDateTime(new TimeOnly(12,0)),30); a2.Cancelar(); var a3=NovoAgendamento(3,6,data.ToDateTime(new TimeOnly(14,0)),30); _db.Agendamentos.AddRange(a1,a2,a3); await _db.SaveChangesAsync();
+        var data=new DateOnly(2026,9,1); var a1=NovoAgendamento(1,5,data.ToDateTime(new TimeOnly(10,0)),60); var a2=NovoAgendamento(2,5,data.ToDateTime(new TimeOnly(12,0)),30); a2.Cancelar(DateTime.UtcNow); var a3=NovoAgendamento(3,6,data.ToDateTime(new TimeOnly(14,0)),30); _db.Agendamentos.AddRange(a1,a2,a3); await _db.SaveChangesAsync();
         var result=await new AgendaDisponibilidadeQuery(_db).BuscarPeriodosOcupadosAsync(5,data);
         var periodo=Assert.Single(result); Assert.Equal(new TimeOnly(10,0),TimeOnly.FromDateTime(periodo.Inicio)); Assert.Equal(new TimeOnly(11,0),TimeOnly.FromDateTime(periodo.Fim));
     }
