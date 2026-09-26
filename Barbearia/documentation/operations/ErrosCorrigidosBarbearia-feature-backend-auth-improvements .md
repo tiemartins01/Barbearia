@@ -130,7 +130,7 @@ Uso de volume -> Sem volume, os dados podem desaparecer quando o container for r
 
 Na classe SmtpSettings foi inserido o campo public bool Enabled { get; set; }
 
-Em backend/BarbeariaApi/Extensions/ServiceCollectionExtensions.cs foi relaizado a verificação 
+Em backend/BarbeariaApi/Extensions/ServiceCollectionExtensions.cs foi realizado a verificação 
 
 public static IServiceCollection AddBarbeariaEmail(
     this IServiceCollection services,
@@ -265,43 +265,3 @@ catch (Exception exception)
 }
 
 E precisou colocar ILogger<LoginController> no construtor
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

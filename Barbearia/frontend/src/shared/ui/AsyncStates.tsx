@@ -1,0 +1,3 @@
+export function LoadingState({label='Carregando...'}:{label?:string}){return <div className="state-card" aria-live="polite"><span className="spinner"/>{label}</div>}
+export function ErrorState({message,onRetry}:{message:string;onRetry?:()=>void}){return <div className="state-card error" role="alert"><strong>Não foi possível carregar.</strong><span>{message}</span>{onRetry&&<button className="button secondary" onClick={onRetry}>Tentar novamente</button>}</div>}
+export function EmptyState({title,description}:{title:string;description?:string}){return <div className="state-card"><strong>{title}</strong>{description&&<span>{description}</span>}</div>}

@@ -1,4 +1,5 @@
 ﻿using Barbearia.HealthChecks;
+using Microsoft.AspNetCore.HttpOverrides;
 using Barbearia.Middleware;
 using BarbeariaApi.Extensions;
 using Google.Protobuf.WellKnownTypes;
@@ -35,6 +36,12 @@ var app = builder.Build();
 
 // Normalmente carrega : appsettings.json appsettings.Development.json variáveis de ambiente user secrets argumentos da linha de comando
 
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto,
+    KnownNetworks = { },
+    KnownProxies = { }
+});
 
 app.UseMiddleware<ErrorHandlingMiddleware>(); // É o middleware responsável por capturar exceções que acontecerem durante uma requisição. Evita try catch em todos os controllers.
 app.UseMiddleware<RequestLoggingMiddleware>(); // Registra informações sobre cada requisição recebida, até as corretas

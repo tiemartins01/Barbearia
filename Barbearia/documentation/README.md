@@ -1,27 +1,23 @@
 # Documentação oficial — Barbearia Backend
 
-**Versão documentada:** Backend Foundation v1.0  
-**Base:** conteúdo do arquivo `Barbearia-corrigida(9).zip`  
-**Escopo:** somente o backend existente no anexo.
-
-Esta pasta descreve o estado real do backend no momento em que o documento foi escrito. Nenhum recurso futuro é apresentado como concluído. A documentação deve ser atualizada junto com cada alteração relevante do projeto.
+Esta pasta descreve o estado real do backend no momento em que o documento está atualmente. Nenhum recurso futuro é apresentado como concluído. A documentação deve ser atualizada junto com cada alteração relevante do projeto.
 
 ## Visão geral
 
-O backend é uma API ASP.NET Core 8 para uma barbearia. Ele oferece cadastro e autenticação de clientes, consulta e alteração de dados pessoais, listagem de barbeiros e serviços, consulta e marcação de horários, histórico, avaliações e recuperação/troca de senha.
+O backend é uma API ASP.NET Core 8 para uma barbearia. Ele oferece cadastro e autenticação de clientes, consulta e alteração de dados pessoais, listagem de barbeiros e serviços, consulta e marcação de horários, histórico, avaliações e recuperação/troca de senha. Com foco em melhoria no quesito de arquitetura limpa e segurança das informações, apenas a aba para cliente + funções forma desenvolvidas.
 
 ## Tecnologias confirmadas
 
 - .NET 8 e ASP.NET Core Web API;
 - Entity Framework Core 8;
-- PostgreSQL por Npgsql;
+- PostgreSQL por Npgsql; Começando a pensar em + 2 providers, sendo o MYSQL e o SQLSERVER.
 - autenticação JWT com access token e refresh token em cookies;
 - proteção antiforgery/CSRF;
 - FluentValidation;
 - BCrypt;
 - rate limiting;
 - Swagger em ambiente Development;
-- xUnit, Moq e Coverlet.
+- xUnit, Moq e Coverlet. para testes
 
 ## Projetos da solução
 
@@ -33,6 +29,8 @@ backend/
 ├── BarbeariaTests/           # testes unitários
 └── Barbearia.sln
 ```
+
+Core não é dependente de ninguém.
 
 ## Índice
 
@@ -77,7 +75,6 @@ Práticas de DDD, FDD e TDD
 Vivência em Scrum
 Sólido conhecimento em React (hooks, context API, componentização)
 Domínio de Git
-Inglês intermediário
 Análise de requisitos
 Boas práticas de performance, escalabilidade e segurança
 Integração de APIs REST

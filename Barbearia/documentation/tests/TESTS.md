@@ -9,24 +9,6 @@
 
 ## Estrutura atual
 
-```text
-BarbeariaTests/
-├── Unit/
-│   ├── Domain/
-│   ├── Services/
-│   └── Validation/
-├── Integration/
-│   ├── Controllers/
-│   ├── Repositories/
-│   ├── Authentication/
-│   └── Database/
-├── Architecture/
-└── Fixtures/
-```
-
-Foram identificados 49 métodos declarados com `[Fact]` ou `[Theory]` na avaliação desta versão.
-
-## Cobertura conceitual
 
 ### Domain
 
@@ -56,26 +38,9 @@ dotnet test Barbearia.sln --collect:"XPlat Code Coverage"
 
 ## O que não está coberto nesta versão
 
-- repositories contra PostgreSQL real;
-- controllers e pipeline HTTP;
-- autenticação baseada em cookies;
-- refresh token de ponta a ponta;
-- CSRF;
-- rate limiting;
-- migrations;
-- concorrência de agendamento;
-- health checks;
-- regras de arquitetura.
 
 ## Relação com TDD
 
-Os testes demonstram preocupação com testabilidade e regras. Entretanto, o estado final do código não comprova sozinho que o ciclo Red → Green → Refactor foi seguido. Para demonstrar TDD, mantenha commits pequenos e registre a evolução de cada caso de uso.
+Os testes demonstram preocupação com testabilidade e regras. Entretanto, o estado final do código não comprova sozinho que o ciclo Red → Green → Refactor foi seguido. Para demonstrar TDD, mantenha commits pequenos e registre a evolução de cada caso de uso. Isso se da principalmente pelo crescimento não planejado do sistema, fazendo com que após bastante evolução, não tenha sido feito pela forma correta. Com isso, o sistema está sendo estabilizado para que seja feito da forma correta e atenda ao requisito.
 
 ## Próxima prioridade de testes
-
-1. criar `BarbeariaIntegrationTests`;
-2. subir PostgreSQL isolado para os testes;
-3. testar login, autorização e CSRF via `WebApplicationFactory`;
-4. testar persistência e rollback;
-5. testar corrida de duas reservas para o mesmo horário;
-6. adicionar `BarbeariaArchitectureTests`.

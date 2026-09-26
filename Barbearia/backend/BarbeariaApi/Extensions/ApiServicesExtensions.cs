@@ -37,9 +37,17 @@ public static class ApiServicesExtensions
             options.HeaderName = "X-CSRF-TOKEN";
             options.Cookie.Name = "XSRF-TOKEN";
             options.Cookie.HttpOnly = false;
-            options.Cookie.SecurePolicy =
+
+            var isProduction = string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                "Production",
+                StringComparison.OrdinalIgnoreCase);
+
+            options.Cookie.SecurePolicy = isProduction ? 
+                CookieSecurePolicy.Always :
                 CookieSecurePolicy.SameAsRequest;
-            options.Cookie.SameSite =
+            options.Cookie.SameSite = isProduction ?
+                SameSiteMode.None :
                 SameSiteMode.Lax;
         });
 

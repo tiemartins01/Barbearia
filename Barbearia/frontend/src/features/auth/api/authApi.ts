@@ -1,5 +1,6 @@
 import { httpClient } from '../../../shared/api/httpClient';
-import type { AuthUser } from '../model/authStore';
-export async function login(login:string,senha:string){await httpClient.post('/login',{nome:login,senha});}
-export async function getCurrentUser(){const {data}=await httpClient.get<AuthUser>('/login/me');return data;}
-export async function logout(){await httpClient.post('/login/logout');}
+import { limparCsrfToken } from '../../../shared/api/csrf';
+import type { CurrentUserResponse, LoginRequest } from '../../../shared/contracts/auth';
+export async function login(request: LoginRequest) { await httpClient.post('/auth/login', request); }
+export async function getCurrentUser() { const { data } = await httpClient.get<CurrentUserResponse>('/auth/me'); return data; }
+export async function logout() { await httpClient.post('/auth/logout'); limparCsrfToken(); }

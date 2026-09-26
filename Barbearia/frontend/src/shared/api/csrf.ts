@@ -1,21 +1,20 @@
-// src/shared/api/csrf.ts
+import axios from 'axios';
 
-import { httpClient } from './httpClient';
-
+const apiUrl = import.meta.env.VITE_API_URL;
+if (!apiUrl) throw new Error('VITE_API_URL não foi configurada.');
+const csrfClient = axios.create({ baseURL: apiUrl, withCredentials: true, timeout: 12_000 });
 let csrfToken: string | null = null;
+let csrfPromise: Promise<string> | null = null;
 
-export async function obterCsrfToken(): Promise<string> {
-  if (csrfToken) {
-    return csrfToken;
-  }
-
-  const response = await httpClient.get<{ token: string }>('/csrf');
-
-  csrfToken = response.data.token;
-
-  return csrfToken;
+export async function obterCsrfToken(force = false): Promise<string> {
+  if (!force && csrfToken) return csrfToken;
+  if (!force && csrfPromise) return csrfPromise;
+  csrfPromise = csrfClient.get<{ token: string }>('/security/csrf')
+    .then(({ data }) => {
+      csrfToken = data.token;
+      return data.token;
+    })
+    .finally(() => { csrfPromise = null; });
+  return csrfPromise;
 }
-
-export function limparCsrfToken(): void {
-  csrfToken = null;
-}
+export function limparCsrfToken() { csrfToken = null; csrfPromise = null; }
