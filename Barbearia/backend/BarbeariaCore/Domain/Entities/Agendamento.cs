@@ -5,7 +5,7 @@ using BarbeariaCore.Domain.Exceptions;
 using BarbeariaCore.Domain.Policies;
 
 namespace BarbeariaCore.Domain.Entities;
-
+// Propriedades do agendamento
 public sealed class Agendamento : AggregateRoot
 {
     public int Id { get; private set; }
