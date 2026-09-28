@@ -11,7 +11,7 @@ const onlyDigits = (value: string) => value.replace(/\D/g, '');
 const schema = z.object({
   nome: z.string().trim().min(2, 'Informe seu nome.'),
   email: z.string().trim().email('E-mail inválido.'),
-  phone: z.string().transform(onlyDigits).refine((v) => v.length === 11, 'Telefone deve ter 11 dígitos.'),
+  telefone: z.string().transform(onlyDigits).refine((v) => v.length === 11, 'Telefone deve ter 11 dígitos.'),
   cpf: z.string().transform(onlyDigits).refine((v) => v.length === 11, 'CPF deve ter 11 dígitos.'),
   login: z.string().trim().min(3, 'Login deve ter ao menos 3 caracteres.'),
   senha: z.string().min(6, 'Senha deve ter ao menos 6 caracteres.'),
@@ -39,10 +39,10 @@ export function RegistrationPage() {
       await mutation.mutateAsync({
         nome: data.nome,
         email: data.email,
-        phone: data.phone,
+        telefone: data.telefone,
         cpf: data.cpf,
         login: data.login,
-        senhaR: data.senha,
+        senha: data.senha,
         foto: null,
       });
 
@@ -73,8 +73,8 @@ export function RegistrationPage() {
             <input id="cad-email" type="email" autoComplete="email" aria-invalid={!!errors.email} {...register('email')} />
           </Field>
 
-          <Field id="cad-phone" label="Telefone" error={errors.phone?.message}>
-            <input id="cad-phone" inputMode="numeric" autoComplete="tel" aria-invalid={!!errors.phone} {...register('phone')} />
+          <Field id="cad-phone" label="Telefone" error={errors.telefone?.message}>
+            <input id="cad-phone" inputMode="numeric" autoComplete="tel" aria-invalid={!!errors.telefone} {...register('telefone')} />
           </Field>
 
           <Field id="cad-cpf" label="CPF" error={errors.cpf?.message}>

@@ -1,10 +1,10 @@
 export type CreateUserRequest = {
   nome: string;
   email: string;
-  phone: string;
+  telefone: string;
   cpf: string;
   login: string;
-  senhaR: string;
+  senha: string;
   foto?: string | null;
 };
 
