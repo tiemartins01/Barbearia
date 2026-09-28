@@ -12,26 +12,44 @@ export function ClientLayout() {
     navigate('/login', { replace: true });
   }
 
+  const initials =
+    user?.nome
+      ?.split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((name) => name[0])
+      .join('')
+      .toUpperCase() || 'U';
+
   return (
     <div className="client-shell">
-      <aside className="client-sidebar">
-        <div className="brand">BarberShop</div>
-        <nav aria-label="Navegação do cliente">
-          <NavLink end to="/cliente">Início</NavLink>
-          <NavLink to="/cliente/agendar">Agendar</NavLink>
-          <NavLink to="/cliente/servicos">Serviços</NavLink>
-          <NavLink to="/cliente/historico">Histórico</NavLink>
-          <NavLink to="/cliente/perfil">Perfil</NavLink>
-        </nav>
+      <header className="client-navbar">
+        <div className="client-navbar-inner">
+          <div className="client-brand">
+            <span className="brand-scissors">✂</span>
+            <span>Barber<strong>Shop</strong></span>
+          </div>
 
-        <div className="sidebar-user">
-          <strong>{user?.nome}</strong>
-          <span>{user?.role}</span>
-          <button className="button secondary" disabled={logout.isPending} onClick={signOut}>
-            {logout.isPending ? 'Saindo...' : 'Sair'}
-          </button>
+          <nav className="client-nav" aria-label="Navegação do cliente">
+            <NavLink end to="/cliente">Início</NavLink>
+            <NavLink to="/cliente/agendar">Agendar</NavLink>
+            <NavLink to="/cliente/servicos">Serviços</NavLink>
+            <NavLink to="/cliente/historico">Histórico</NavLink>
+            <NavLink to="/cliente/perfil">Perfil</NavLink>
+          </nav>
+
+          <div className="client-user">
+            <div className="client-avatar">{initials}</div>
+            <div className="client-user-text">
+              <strong>{user?.nome}</strong>
+              <span>{user?.role}</span>
+            </div>
+            <button className="client-logout" disabled={logout.isPending} onClick={signOut}>
+              {logout.isPending ? 'Saindo...' : 'Sair'}
+            </button>
+          </div>
         </div>
-      </aside>
+      </header>
 
       <main className="client-content">
         <Outlet />
