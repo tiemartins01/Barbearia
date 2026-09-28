@@ -100,10 +100,10 @@ export default function CadastroUser() {
             await api.post("/cadastro", {
                 nome: nome,
                 email: email,
-                phone: phone,
+                telefone: phone,
                 cpf: cpf,
                 login: login,
-                senhaR: senha,
+                senha: senha,
             });
             mostrarSucesso("Usuário cadastrado com sucesso!");
 
